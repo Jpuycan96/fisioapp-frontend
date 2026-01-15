@@ -1,1 +1,200 @@
-/* You can add global styles to this file, and also import other style files */
+/* PrimeIcons */
+@import "primeicons/primeicons.css";
+
+/* PrimeFlex (Grid System) */
+@import "primeflex/primeflex.css";
+
+/* Variables globales - Colores del proyecto */
+:root {
+  --primary-color: #14B8A6;        /* Turquesa principal */
+  --primary-dark: #0D9488;         /* Turquesa oscuro */
+  --primary-light: #5EEAD4;        /* Turquesa claro */
+  
+  --secondary-color: #1E3A8A;      /* Azul del logo */
+  --secondary-dark: #1E40AF;       /* Azul oscuro */
+  --secondary-light: #3B82F6;      /* Azul claro */
+  
+  --accent-color: #DC2626;         /* Rojo del logo */
+  --accent-light: #EF4444;         /* Rojo claro */
+  
+  --success-color: #22C55E;        /* Verde éxito */
+  --warning-color: #F59E0B;        /* Amarillo advertencia */
+  --info-color: #3B82F6;           /* Azul información */
+  --danger-color: #EF4444;         /* Rojo error */
+  
+  --surface-ground: #F8FAFC;       /* Fondo general */
+  --surface-card: #FFFFFF;         /* Fondo tarjetas */
+  --surface-border: #E2E8F0;       /* Bordes */
+  --surface-hover: #F1F5F9;        /* Hover */
+  
+  --text-color: #334155;           /* Texto principal */
+  --text-secondary: #64748B;       /* Texto secundario */
+  --text-light: #94A3B8;           /* Texto claro */
+  
+  --sidebar-width: 260px;
+  --navbar-height: 60px;
+}
+
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  background-color: var(--surface-ground);
+  color: var(--text-color);
+}
+
+/* Links */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  
+  &:hover {
+    color: var(--primary-dark);
+  }
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-ground);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-light);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Utilidades personalizadas */
+.bg-primary {
+  background-color: var(--primary-color) !important;
+}
+
+.bg-secondary {
+  background-color: var(--secondary-color) !important;
+}
+
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+.text-secondary-color {
+  color: var(--secondary-color) !important;
+}
+
+.text-muted {
+  color: var(--text-secondary) !important;
+}
+
+.border-primary {
+  border-color: var(--primary-color) !important;
+}
+
+/* Cards personalizadas */
+.card-dashboard {
+  background: var(--surface-card);
+  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  padding: 1.5rem;
+  transition: box-shadow 0.2s;
+  
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Estados de paciente */
+.estado-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  
+  &.nuevo {
+    background-color: #DBEAFE;
+    color: #1E40AF;
+  }
+  
+  &.en-tratamiento {
+    background-color: #D1FAE5;
+    color: #065F46;
+  }
+  
+  &.requiere-reconsulta {
+    background-color: #FEF3C7;
+    color: #92400E;
+  }
+  
+  &.inactivo {
+    background-color: #F1F5F9;
+    color: #475569;
+  }
+  
+  &.alta {
+    background-color: #ECFDF5;
+    color: #047857;
+  }
+}
+
+/* Estados de cita */
+.cita-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  
+  &.programada {
+    background-color: #DBEAFE;
+    color: #1E40AF;
+  }
+  
+  &.confirmada {
+    background-color: #D1FAE5;
+    color: #065F46;
+  }
+  
+  &.en-atencion {
+    background-color: #FEF3C7;
+    color: #92400E;
+  }
+  
+  &.completada {
+    background-color: #ECFDF5;
+    color: #047857;
+  }
+  
+  &.cancelada {
+    background-color: #FEE2E2;
+    color: #991B1B;
+  }
+  
+  &.no-asistio {
+    background-color: #FEE2E2;
+    color: #991B1B;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}

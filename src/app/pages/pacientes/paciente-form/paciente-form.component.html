@@ -1,0 +1,188 @@
+<p-toast></p-toast>
+
+<app-page-header 
+  [title]="isEdit ? 'Editar Paciente' : 'Nuevo Paciente'" 
+  [subtitle]="isEdit ? 'Modifique los datos del paciente' : 'Complete el formulario para registrar un nuevo paciente'">
+  <button pButton label="Cancelar" icon="pi pi-times" class="p-button-outlined" routerLink="/pacientes"></button>
+</app-page-header>
+
+@if (loading) {
+  <div class="flex justify-content-center py-5">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color);"></i>
+  </div>
+} @else {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <!-- Datos Personales -->
+    <div class="form-section">
+      <h3><i class="pi pi-user"></i> Datos Personales</h3>
+      
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <div class="field">
+            <label for="nombres">Nombres *</label>
+            <input pInputText id="nombres" formControlName="nombres" class="w-full" 
+              [class.ng-invalid]="f['nombres'].invalid && f['nombres'].touched" />
+            @if (f['nombres'].invalid && f['nombres'].touched) {
+              <small class="p-error">El nombre es requerido</small>
+            }
+          </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <div class="field">
+            <label for="apellidos">Apellidos *</label>
+            <input pInputText id="apellidos" formControlName="apellidos" class="w-full"
+              [class.ng-invalid]="f['apellidos'].invalid && f['apellidos'].touched" />
+            @if (f['apellidos'].invalid && f['apellidos'].touched) {
+              <small class="p-error">El apellido es requerido</small>
+            }
+          </div>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <div class="field">
+            <label for="dni">DNI *</label>
+            <input pInputText id="dni" formControlName="dni" class="w-full"
+              [class.ng-invalid]="f['dni'].invalid && f['dni'].touched" />
+            @if (f['dni'].invalid && f['dni'].touched) {
+              <small class="p-error">El DNI es requerido</small>
+            }
+          </div>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <div class="field">
+            <label for="fechaNacimiento">Fecha de Nacimiento</label>
+            <p-datepicker
+              id="fechaNacimiento" 
+              formControlName="fechaNacimiento" 
+              dateFormat="dd/mm/yy"
+              [showIcon]="true"
+              [maxDate]="today"
+              styleClass="w-full">
+            </p-datepicker>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <div class="field">
+            <label for="sexo">Sexo</label>
+            <p-dropdown 
+              id="sexo"
+              formControlName="sexo"
+              [options]="sexoOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccione"
+              styleClass="w-full">
+            </p-dropdown>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contacto -->
+    <div class="form-section">
+      <h3><i class="pi pi-phone"></i> Información de Contacto</h3>
+      
+      <div class="grid">
+        <div class="col-12 md:col-4">
+          <div class="field">
+            <label for="telefono">Teléfono *</label>
+            <input pInputText id="telefono" formControlName="telefono" class="w-full"
+              [class.ng-invalid]="f['telefono'].invalid && f['telefono'].touched" />
+            @if (f['telefono'].invalid && f['telefono'].touched) {
+              <small class="p-error">El teléfono es requerido</small>
+            }
+          </div>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <div class="field">
+            <label for="email">Email</label>
+            <input pInputText id="email" formControlName="email" class="w-full" type="email" />
+            @if (f['email'].errors?.['email']) {
+              <small class="p-error">Email inválido</small>
+            }
+          </div>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <div class="field">
+            <label for="ocupacion">Ocupación</label>
+            <input pInputText id="ocupacion" formControlName="ocupacion" class="w-full" />
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="field">
+            <label for="direccion">Dirección</label>
+            <input pInputText id="direccion" formControlName="direccion" class="w-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información Médica -->
+    <div class="form-section">
+      <h3><i class="pi pi-heart"></i> Información Médica</h3>
+      
+      <div class="grid">
+        <div class="col-12 md:col-4">
+          <div class="field">
+            <label for="alergias">Alergias</label>
+            <textarea pTextarea id="alergias" formControlName="alergias" class="w-full" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <div class="field">
+            <label for="medicamentos">Medicamentos</label>
+            <textarea pTextarea id="medicamentos" formControlName="medicamentos" class="w-full" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <div class="field">
+            <label for="condicionesPreexistentes">Condiciones Preexistentes</label>
+            <textarea pTextarea id="condicionesPreexistentes" formControlName="condicionesPreexistentes" class="w-full" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contacto de Emergencia -->
+    <div class="form-section">
+      <h3><i class="pi pi-exclamation-triangle"></i> Contacto de Emergencia</h3>
+      
+      <div class="grid">
+        <div class="col-12 md:col-4">
+          <div class="field">
+            <label for="contactoEmergenciaNombre">Nombre</label>
+            <input pInputText id="contactoEmergenciaNombre" formControlName="contactoEmergenciaNombre" class="w-full" />
+          </div>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <div class="field">
+            <label for="contactoEmergenciaTelefono">Teléfono</label>
+            <input pInputText id="contactoEmergenciaTelefono" formControlName="contactoEmergenciaTelefono" class="w-full" />
+          </div>
+        </div>
+
+        <div class="col-12 md:col-4">
+          <div class="field">
+            <label for="contactoEmergenciaParentesco">Parentesco</label>
+            <input pInputText id="contactoEmergenciaParentesco" formControlName="contactoEmergenciaParentesco" class="w-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="form-actions">
+      <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-outlined" routerLink="/pacientes"></button>
+      <button pButton type="submit" [label]="isEdit ? 'Actualizar' : 'Guardar'" icon="pi pi-check" [loading]="saving"></button>
+    </div>
+  </form>
+}

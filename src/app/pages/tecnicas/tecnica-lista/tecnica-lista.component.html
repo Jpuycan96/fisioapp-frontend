@@ -1,0 +1,189 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<app-page-header title="Técnicas" subtitle="Gestión de técnicas y precios">
+  <button pButton label="Nueva Técnica" icon="pi pi-plus" (click)="nuevaTecnica()"></button>
+</app-page-header>
+
+<!-- Filtros -->
+<div class="filters-card">
+  <div class="flex align-items-center gap-3">
+    <p-checkbox
+      [(ngModel)]="mostrarInactivas"
+      [binary]="true"
+      inputId="mostrarInactivas"
+      (onChange)="onMostrarInactivasChange()">
+    </p-checkbox>
+    <label for="mostrarInactivas" class="cursor-pointer">Mostrar técnicas inactivas</label>
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="table-card">
+  <p-table
+    [value]="tecnicas"
+    [loading]="loading"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} técnicas"
+    [globalFilterFields]="['codigo', 'nombre']"
+    styleClass="p-datatable-sm p-datatable-striped">
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="codigo" style="width: 120px;">
+          Código <p-sortIcon field="codigo"></p-sortIcon>
+        </th>
+        <th pSortableColumn="nombre">
+          Nombre <p-sortIcon field="nombre"></p-sortIcon>
+        </th>
+        <th pSortableColumn="precio" style="width: 120px;">
+          Precio <p-sortIcon field="precio"></p-sortIcon>
+        </th>
+        <th style="width: 100px;">Duración</th>
+        <th style="width: 100px;">Estado</th>
+        <th style="width: 120px;">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-tecnica>
+      <tr [class.row-inactive]="!tecnica.activo">
+        <td>
+          <span class="codigo-badge">{{ tecnica.codigo }}</span>
+        </td>
+        <td>
+          <div class="tecnica-info">
+            <span class="tecnica-nombre">{{ tecnica.nombre }}</span>
+            @if (tecnica.descripcion) {
+              <span class="tecnica-desc">{{ tecnica.descripcion | slice:0:50 }}{{ tecnica.descripcion.length > 50 ? '...' : '' }}</span>
+            }
+          </div>
+        </td>
+        <td>
+          <span class="precio">S/. {{ tecnica.precio | number:'1.2-2' }}</span>
+        </td>
+        <td>
+          @if (tecnica.duracionMinutos) {
+            <span>{{ tecnica.duracionMinutos }} min</span>
+          } @else {
+            <span class="text-secondary">-</span>
+          }
+        </td>
+        <td>
+          <p-tag 
+            [value]="tecnica.activo ? 'Activo' : 'Inactivo'" 
+            [severity]="tecnica.activo ? 'success' : 'danger'">
+          </p-tag>
+        </td>
+        <td>
+          <div class="action-buttons">
+            <button pButton icon="pi pi-pencil" 
+              class="p-button-text p-button-sm p-button-info"
+              pTooltip="Editar"
+              (click)="editarTecnica(tecnica)">
+            </button>
+            <button pButton 
+              [icon]="tecnica.activo ? 'pi pi-eye-slash' : 'pi pi-eye'" 
+              class="p-button-text p-button-sm"
+              [class.p-button-danger]="tecnica.activo"
+              [class.p-button-success]="!tecnica.activo"
+              [pTooltip]="tecnica.activo ? 'Desactivar' : 'Activar'"
+              (click)="toggleEstado(tecnica)">
+            </button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6">
+          <div class="empty-state">
+            <i class="pi pi-list"></i>
+            <p>No hay técnicas registradas</p>
+            <button pButton label="Crear primera técnica" icon="pi pi-plus" 
+              class="p-button-outlined" (click)="nuevaTecnica()"></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Dialog -->
+<p-dialog 
+  [header]="dialogTitle" 
+  [(visible)]="showDialog" 
+  [modal]="true" 
+  [style]="{width: '500px'}"
+  [closable]="!saving">
+
+  <form [formGroup]="form" (ngSubmit)="guardarTecnica()">
+    <div class="grid">
+      <div class="col-12 md:col-4">
+        <div class="field">
+          <label for="codigo">Código *</label>
+          <input pInputText id="codigo" formControlName="codigo" class="w-full" 
+            placeholder="Ej: TEC001" [style.text-transform]="'uppercase'">
+          @if (f['codigo'].invalid && f['codigo'].touched) {
+            <small class="p-error">El código es requerido</small>
+          }
+        </div>
+      </div>
+
+      <div class="col-12 md:col-8">
+        <div class="field">
+          <label for="nombre">Nombre *</label>
+          <input pInputText id="nombre" formControlName="nombre" class="w-full" 
+            placeholder="Nombre de la técnica">
+          @if (f['nombre'].invalid && f['nombre'].touched) {
+            <small class="p-error">El nombre es requerido</small>
+          }
+        </div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="field">
+          <label for="precio">Precio (S/.) *</label>
+          <p-inputNumber id="precio" formControlName="precio" 
+            [min]="0" [minFractionDigits]="2" [maxFractionDigits]="2"
+            mode="currency" currency="PEN" locale="es-PE"
+            styleClass="w-full">
+          </p-inputNumber>
+          @if (f['precio'].invalid && f['precio'].touched) {
+            <small class="p-error">El precio es requerido</small>
+          }
+        </div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="field">
+          <label for="duracionMinutos">Duración (minutos)</label>
+          <p-inputNumber id="duracionMinutos" formControlName="duracionMinutos" 
+            [min]="1" [max]="480"
+            suffix=" min"
+            styleClass="w-full">
+          </p-inputNumber>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="field">
+          <label for="descripcion">Descripción</label>
+          <textarea pTextarea id="descripcion" formControlName="descripcion" 
+            rows="3" class="w-full" 
+            placeholder="Descripción de la técnica..."></textarea>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" 
+      (click)="showDialog = false" [disabled]="saving"></button>
+    <button pButton label="Guardar" icon="pi pi-check" 
+      (click)="guardarTecnica()" [loading]="saving"></button>
+  </ng-template>
+</p-dialog>

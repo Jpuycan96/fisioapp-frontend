@@ -1,0 +1,251 @@
+<p-toast></p-toast>
+
+<app-page-header
+  title="Nuevo Plan de Tratamiento"
+  subtitle="Defina el tratamiento para el paciente">
+  <button pButton label="Cancelar" icon="pi pi-times" class="p-button-outlined"
+    [routerLink]="pacienteId ? ['/pacientes', pacienteId] : ['/planes']"></button>
+</app-page-header>
+
+@if (loading) {
+  <div class="flex justify-content-center py-5">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color);"></i>
+  </div>
+} @else if (paciente) {
+  <!-- Info del Paciente -->
+  <div class="paciente-card">
+    <div class="paciente-avatar">
+      {{ paciente.nombres.charAt(0) }}{{ paciente.apellidos.charAt(0) }}
+    </div>
+    <div class="paciente-info">
+      <h3>{{ paciente.nombres }} {{ paciente.apellidos }}</h3>
+      <div class="paciente-detalles">
+        <span><i class="pi pi-id-card"></i> {{ paciente.dni }}</span>
+        <span><i class="pi pi-phone"></i> {{ paciente.telefono }}</span>
+      </div>
+    </div>
+  </div>
+
+  @if (!consultaId) {
+    <div class="alert-warning">
+      <i class="pi pi-exclamation-triangle"></i>
+      <span>Para crear un plan, primero debe registrar una consulta para este paciente.</span>
+      <a [routerLink]="['/consultas/nueva']" [queryParams]="{pacienteId: pacienteId}">Ir a crear consulta</a>
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="grid">
+      <div class="col-12 lg:col-8">
+        <!-- Diagnóstico -->
+        <div class="form-section">
+          <h3><i class="pi pi-file-edit"></i> Diagnóstico</h3>
+
+          <div class="field">
+            <label for="diagnostico">Diagnóstico / Problema *</label>
+            <textarea
+              pTextarea
+              id="diagnostico"
+              formControlName="diagnostico"
+              rows="3"
+              class="w-full"
+              placeholder="Describa el diagnóstico o problema a tratar...">
+            </textarea>
+            @if (f['diagnostico'].invalid && f['diagnostico'].touched) {
+              <small class="p-error">El diagnóstico es requerido</small>
+            }
+          </div>
+        </div>
+
+        <!-- Sesiones -->
+        <div class="form-section">
+          <h3><i class="pi pi-calendar"></i> Sesiones</h3>
+
+          <div class="grid">
+            <div class="col-12 md:col-6">
+              <div class="field">
+                <label for="numeroSesiones">Número de Sesiones *</label>
+                <p-inputNumber
+                  id="numeroSesiones"
+                  formControlName="numeroSesiones"
+                  [min]="1"
+                  [max]="100"
+                  styleClass="w-full">
+                </p-inputNumber>
+              </div>
+            </div>
+
+            <div class="col-12 md:col-6">
+              <div class="field">
+                <label for="frecuenciaSugerida">Frecuencia Sugerida</label>
+                <p-dropdown
+                  id="frecuenciaSugerida"
+                  formControlName="frecuenciaSugerida"
+                  [options]="frecuenciaOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Seleccione frecuencia"
+                  styleClass="w-full">
+                </p-dropdown>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Técnicas -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3><i class="pi pi-list"></i> Técnicas a Aplicar</h3>
+            <button pButton type="button" label="Agregar Técnica" icon="pi pi-plus"
+              class="p-button-outlined p-button-sm" (click)="agregarTecnica()"></button>
+          </div>
+
+          @if (tecnicasArray.length === 0) {
+            <div class="empty-tecnicas">
+              <i class="pi pi-info-circle"></i>
+              <p>No hay técnicas agregadas. Click en "Agregar Técnica" para añadir.</p>
+            </div>
+          }
+
+          <div formArrayName="tecnicasArray">
+            @for (tecnica of tecnicasArray.controls; track $index) {
+              <div class="tecnica-item" [formGroupName]="$index">
+                <div class="grid align-items-end">
+                  <div class="col-12 md:col-7">
+                    <div class="field">
+                      <label>Técnica *</label>
+                      <p-dropdown
+                        formControlName="tecnicaId"
+                        [options]="tecnicas"
+                        optionLabel="nombre"
+                        optionValue="id"
+                        placeholder="Seleccione técnica"
+                        [filter]="true"
+                        filterPlaceholder="Buscar técnica..."
+                        styleClass="w-full">
+                        <ng-template let-tec pTemplate="item">
+                          <div class="tecnica-option">
+                            <span>{{ tec.nombre }}</span>
+                            <span class="tecnica-precio">S/. {{ tec.precio | number:'1.2-2' }}</span>
+                          </div>
+                        </ng-template>
+                      </p-dropdown>
+                    </div>
+                  </div>
+
+                  <div class="col-12 md:col-3">
+                    <div class="field">
+                      <label>Precio por sesión</label>
+                      <div class="subtotal-display">
+                        S/. {{ getTecnicaPrecio(tecnica.get('tecnicaId')?.value) | number:'1.2-2' }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12 md:col-2">
+                    <button pButton type="button" icon="pi pi-trash"
+                      class="p-button-danger p-button-outlined w-full"
+                      (click)="eliminarTecnica($index)"
+                      [disabled]="tecnicasArray.length === 1">
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="form-section">
+          <h3><i class="pi pi-comment"></i> Observaciones</h3>
+          <div class="field">
+            <textarea
+              pTextarea
+              formControlName="observaciones"
+              rows="3"
+              class="w-full"
+              placeholder="Observaciones adicionales del plan...">
+            </textarea>
+          </div>
+        </div>
+
+        <!-- Botones Mobile -->
+        <div class="form-actions hide-desktop">
+          <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-outlined"
+            [routerLink]="pacienteId ? ['/pacientes', pacienteId] : ['/planes']"></button>
+          <button pButton type="submit" label="Crear Plan" icon="pi pi-check" 
+            [loading]="saving" [disabled]="!consultaId || saving"></button>
+        </div>
+      </div>
+
+      <!-- Panel de Resumen -->
+      <div class="col-12 lg:col-4">
+        <div class="resumen-card">
+          <h3><i class="pi pi-calculator"></i> Resumen de Costos</h3>
+
+          <div class="resumen-item">
+            <span class="label">Técnicas seleccionadas:</span>
+            <span class="value">{{ tecnicasArray.length }}</span>
+          </div>
+
+          <div class="resumen-item">
+            <span class="label">Costo por Sesión:</span>
+            <span class="value">S/. {{ calcularCostoPorSesion() | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="resumen-item">
+            <span class="label">Número de Sesiones:</span>
+            <span class="value">{{ form.get('numeroSesiones')?.value || 0 }}</span>
+          </div>
+
+          <p-divider></p-divider>
+
+          <div class="resumen-item">
+            <span class="label">Costo Total:</span>
+            <span class="value font-bold">S/. {{ calcularCostoTotal() | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="descuento-section">
+            <p-checkbox
+              formControlName="aplicarDescuento"
+              [binary]="true"
+              inputId="aplicarDescuento">
+            </p-checkbox>
+            <label for="aplicarDescuento">
+              Aplicar descuento ({{ descuentoPagoCompleto }}%)
+            </label>
+          </div>
+
+          @if (form.get('aplicarDescuento')?.value) {
+            <div class="resumen-item descuento">
+              <span class="label">Descuento:</span>
+              <span class="value text-green-500">
+                - S/. {{ calcularCostoTotal() - calcularCostoConDescuento() | number:'1.2-2' }}
+              </span>
+            </div>
+          }
+
+          <p-divider></p-divider>
+
+          <div class="resumen-item total">
+            <span class="label">Total a Pagar:</span>
+            <span class="value">S/. {{ calcularCostoConDescuento() | number:'1.2-2' }}</span>
+          </div>
+
+          <!-- Botones Desktop -->
+          <div class="form-actions-desktop">
+            <button pButton type="submit" label="Crear Plan" icon="pi pi-check" 
+              class="w-full" [loading]="saving" [disabled]="!consultaId || saving">
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+} @else {
+  <div class="empty-state">
+    <i class="pi pi-exclamation-circle"></i>
+    <p>No se pudo cargar la información del paciente</p>
+    <button pButton label="Volver a Planes" icon="pi pi-arrow-left" routerLink="/planes"></button>
+  </div>
+}

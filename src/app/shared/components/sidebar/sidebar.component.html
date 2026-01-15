@@ -1,0 +1,52 @@
+<aside class="sidebar" [class.collapsed]="collapsed">
+  <!-- Logo -->
+  <div class="sidebar-header">
+    <div class="logo">
+      <i class="pi pi-heart-fill logo-icon"></i>
+      <span class="logo-text" *ngIf="!collapsed">FisioApp</span>
+    </div>
+    <button class="toggle-btn" (click)="onToggle()">
+      <i class="pi" [ngClass]="collapsed ? 'pi-angle-right' : 'pi-angle-left'"></i>
+    </button>
+  </div>
+
+  <!-- Menu -->
+  <nav class="sidebar-menu">
+    <ul class="menu-list">
+      @for (item of menuItems; track item.route) {
+        <li class="menu-item">
+          <a 
+            [routerLink]="item.route" 
+            routerLinkActive="active"
+            class="menu-link"
+            [pTooltip]="collapsed ? item.label : ''"
+            tooltipPosition="right">
+            <i [class]="item.icon"></i>
+            <span class="menu-label" *ngIf="!collapsed">{{ item.label }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+
+    <div class="menu-divider" *ngIf="!collapsed">
+      <span>Sistema</span>
+    </div>
+    <div class="menu-divider-line" *ngIf="collapsed"></div>
+
+    <ul class="menu-list">
+      @for (item of configItems; track item.route) {
+        <li class="menu-item">
+          <a 
+            [routerLink]="item.route" 
+            routerLinkActive="active"
+            class="menu-link"
+            [pTooltip]="collapsed ? item.label : ''"
+            tooltipPosition="right">
+            <i [class]="item.icon"></i>
+            <span class="menu-label" *ngIf="!collapsed">{{ item.label }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+</aside>

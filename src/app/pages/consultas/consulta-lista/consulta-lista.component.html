@@ -1,0 +1,111 @@
+<p-toast></p-toast>
+
+<app-page-header title="Consultas" subtitle="Historial de consultas realizadas">
+</app-page-header>
+
+<!-- Filtros -->
+<div class="filters-card">
+  <div class="grid align-items-end">
+    <div class="col-12 md:col-4 lg:col-3">
+      <label class="block mb-2 font-medium">Fecha</label>
+      <p-datepicker
+        [(ngModel)]="fechaSeleccionada"
+        dateFormat="dd/mm/yy"
+        [showIcon]="true"
+        [disabled]="mostrarTodas"
+        styleClass="w-full"
+        (onSelect)="onFechaChange()">
+      </p-datepicker>
+    </div>
+    <div class="col-12 md:col-4 lg:col-3">
+      <div class="flex align-items-center gap-2 h-full pb-2">
+        <p-checkbox
+          [(ngModel)]="mostrarTodas"
+          [binary]="true"
+          inputId="mostrarTodas"
+          (onChange)="onMostrarTodasChange()">
+        </p-checkbox>
+        <label for="mostrarTodas" class="cursor-pointer">Mostrar todas</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="table-card">
+  <p-table
+    [value]="consultas"
+    [loading]="loading"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} consultas"
+    [sortField]="'fecha'"
+    [sortOrder]="-1"
+    styleClass="p-datatable-sm p-datatable-striped">
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="fecha">Fecha <p-sortIcon field="fecha"></p-sortIcon></th>
+        <th pSortableColumn="pacienteNombre">Paciente <p-sortIcon field="pacienteNombre"></p-sortIcon></th>
+        <th>Tipo</th>
+        <th>Motivo</th>
+        <th>Precio</th>
+        <th>Atendido por</th>
+        <th style="width: 120px;">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-consulta>
+      <tr>
+        <td>{{ formatFecha(consulta.fecha) }}</td>
+        <td>
+          <a [routerLink]="['/pacientes', consulta.pacienteId]" class="paciente-link">
+            {{ consulta.pacienteNombre }}
+          </a>
+        </td>
+        <td>
+          <p-tag [value]="getTipoLabel(consulta.tipo)" [severity]="getTipoSeverity(consulta.tipo)"></p-tag>
+        </td>
+        <td>
+          <span class="motivo-text">{{ consulta.motivoConsulta | slice:0:40 }}{{ consulta.motivoConsulta?.length > 40 ? '...' : '' }}</span>
+        </td>
+        <td>
+          <span class="precio">S/. {{ consulta.precioCobrado | number:'1.2-2' }}</span>
+        </td>
+        <td>{{ consulta.atendidoPorNombre || '-' }}</td>
+        <td>
+          <div class="action-buttons">
+            <button
+              pButton
+              icon="pi pi-eye"
+              class="p-button-text p-button-sm p-button-info"
+              pTooltip="Ver detalle"
+              [routerLink]="['/consultas', consulta.id]">
+            </button>
+            <button
+              pButton
+              icon="pi pi-file-plus"
+              class="p-button-text p-button-sm p-button-success"
+              pTooltip="Crear Plan"
+              [routerLink]="['/planes/nuevo']"
+              [queryParams]="{pacienteId: consulta.pacienteId, consultaId: consulta.id}">
+            </button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7">
+          <div class="empty-state">
+            <i class="pi pi-file-edit"></i>
+            <p>{{ mostrarTodas ? 'No hay consultas registradas' : 'No se encontraron consultas para esta fecha' }}</p>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

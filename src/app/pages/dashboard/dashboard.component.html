@@ -1,0 +1,166 @@
+<app-page-header 
+  title="Dashboard" 
+  subtitle="Resumen del día">
+  <button pButton label="Nueva Cita" icon="pi pi-plus" routerLink="/citas/nueva"></button>
+</app-page-header>
+
+<!-- Loading -->
+@if (loading) {
+  <div class="flex justify-content-center py-5">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color);"></i>
+  </div>
+}
+
+@if (!loading && dashboard) {
+  <!-- Estadísticas -->
+  <div class="grid">
+    <!-- Citas Hoy -->
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="stat-card">
+        <div class="stat-icon bg-primary">
+          <i class="pi pi-calendar"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ dashboard.citasHoy }}</span>
+          <span class="stat-label">Citas Hoy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consultas -->
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="stat-card">
+        <div class="stat-icon bg-info">
+          <i class="pi pi-file-edit"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ dashboard.consultasHoy }}</span>
+          <span class="stat-label">Consultas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sesiones -->
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="stat-card">
+        <div class="stat-icon bg-success">
+          <i class="pi pi-heart"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ dashboard.sesionesHoy }}</span>
+          <span class="stat-label">Sesiones</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ingresos -->
+    <div class="col-12 md:col-6 lg:col-3">
+      <div class="stat-card">
+        <div class="stat-icon bg-secondary">
+          <i class="pi pi-wallet"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">S/. {{ dashboard.ingresosDia | number:'1.2-2' }}</span>
+          <span class="stat-label">Ingresos del Día</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Segunda fila -->
+  <div class="grid mt-3">
+    <!-- Próximas Citas -->
+    <div class="col-12 lg:col-8">
+      <div class="card-dashboard">
+        <div class="card-header">
+          <h3>Citas de Hoy</h3>
+          <a routerLink="/citas" class="view-all">Ver todas <i class="pi pi-arrow-right"></i></a>
+        </div>
+
+        @if (dashboard.proximasCitas.length === 0) {
+          <div class="empty-state">
+            <i class="pi pi-calendar"></i>
+            <p>No hay citas programadas para hoy</p>
+          </div>
+        } @else {
+          <p-table [value]="dashboard.proximasCitas" styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Hora</th>
+                <th>Paciente</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-cita>
+              <tr>
+                <td>
+                  <span class="font-semibold">{{ formatHora(cita.fechaHora) }}</span>
+                </td>
+                <td>
+                  <div class="flex flex-column">
+                    <span class="font-semibold">{{ cita.pacienteNombre }}</span>
+                    <small class="text-muted">{{ cita.pacienteDni }}</small>
+                  </div>
+                </td>
+                <td>{{ getTipoCitaLabel(cita.tipo) }}</td>
+                <td>
+                  <p-tag [value]="cita.estado" [severity]="getEstadoCitaSeverity(cita.estado)"></p-tag>
+                </td>
+                <td>
+                  <button pButton icon="pi pi-eye" class="p-button-text p-button-sm" 
+                    [routerLink]="['/citas', cita.id]"></button>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        }
+      </div>
+    </div>
+
+    <!-- Alertas -->
+    <div class="col-12 lg:col-4">
+      <div class="card-dashboard">
+        <div class="card-header">
+          <h3>Alertas</h3>
+        </div>
+
+        <div class="alert-list">
+          <!-- Pacientes Reconsulta -->
+          <div class="alert-item" [class.alert-warning]="dashboard.pacientesRequierenReconsulta > 0">
+            <div class="alert-icon">
+              <i class="pi pi-exclamation-triangle"></i>
+            </div>
+            <div class="alert-content">
+              <span class="alert-value">{{ dashboard.pacientesRequierenReconsulta }}</span>
+              <span class="alert-label">Pacientes requieren reconsulta</span>
+            </div>
+          </div>
+
+          <!-- Planes Pendientes -->
+          <div class="alert-item" [class.alert-info]="dashboard.planesPendientesConfirmacion > 0">
+            <div class="alert-icon">
+              <i class="pi pi-clock"></i>
+            </div>
+            <div class="alert-content">
+              <span class="alert-value">{{ dashboard.planesPendientesConfirmacion }}</span>
+              <span class="alert-label">Planes pendientes de confirmación</span>
+            </div>
+          </div>
+
+          <!-- Pagos Pendientes -->
+          <div class="alert-item" [class.alert-danger]="dashboard.pagosPendientes > 0">
+            <div class="alert-icon">
+              <i class="pi pi-wallet"></i>
+            </div>
+            <div class="alert-content">
+              <span class="alert-value">{{ dashboard.pagosPendientes }}</span>
+              <span class="alert-label">Pagos pendientes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

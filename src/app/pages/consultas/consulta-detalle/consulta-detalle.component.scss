@@ -1,0 +1,106 @@
+.detail-card {
+  background: var(--surface-card);
+  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--surface-border);
+
+    i {
+      color: var(--primary-color);
+    }
+  }
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 0.5rem;
+
+  .info-label {
+    color: var(--text-secondary);
+    min-width: 120px;
+  }
+
+  .info-value {
+    color: var(--text-color);
+    font-weight: 500;
+  }
+}
+
+.consulta-text {
+  color: var(--text-color);
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.hallazgos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hallazgo-item {
+  background: var(--surface-ground);
+  border-radius: 8px;
+  padding: 1rem;
+  border-left: 3px solid var(--primary-color);
+
+  .hallazgo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  .zona-nombre {
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  .hallazgo-tipo {
+    color: var(--primary-color);
+    font-size: 0.9rem;
+  }
+
+  .hallazgo-descripcion {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--surface-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .detail-label {
+    color: var(--text-secondary);
+  }
+
+  .detail-value {
+    color: var(--text-color);
+    font-weight: 500;
+
+    &.precio {
+      color: var(--primary-color);
+      font-size: 1.1rem;
+    }
+  }
+}

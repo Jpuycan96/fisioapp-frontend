@@ -1,0 +1,18 @@
+<div class="layout-wrapper" [class.sidebar-collapsed]="sidebarCollapsed">
+  <!-- Sidebar -->
+  <app-sidebar 
+    [collapsed]="sidebarCollapsed"
+    (toggle)="onSidebarToggle()">
+  </app-sidebar>
+  
+  <!-- Main Content -->
+  <div class="layout-main">
+    <!-- Navbar -->
+    <app-navbar (menuToggle)="onSidebarToggle()"></app-navbar>
+    
+    <!-- Page Content -->
+    <div class="layout-content">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

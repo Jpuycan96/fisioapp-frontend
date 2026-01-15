@@ -1,0 +1,147 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<app-page-header title="Citas" [subtitle]="formatFechaDisplay(fechaSeleccionada)">
+  <button pButton label="Nueva Cita" icon="pi pi-plus" (click)="nuevaCita()"></button>
+</app-page-header>
+
+<!-- Filtros -->
+<div class="filters-card">
+  <div class="grid align-items-center">
+    <div class="col-12 md:col-4 lg:col-3">
+      <label class="block mb-2 font-medium">Fecha</label>
+      <p-datepicker
+        [(ngModel)]="fechaSeleccionada"
+        dateFormat="dd/mm/yy"
+        [showIcon]="true"
+        styleClass="w-full"
+        (onSelect)="onFechaChange()">
+      </p-datepicker>
+    </div>
+    
+    <div class="col-12 md:col-4 lg:col-3">
+      <label class="block mb-2 font-medium">Estado</label>
+      <p-dropdown
+        [options]="estadoOptions"
+        [(ngModel)]="estadoSeleccionado"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Todos"
+        styleClass="w-full"
+        (onChange)="onEstadoChange()">
+      </p-dropdown>
+    </div>
+    
+    <div class="col-12 md:col-4 lg:col-6">
+      <label class="block mb-2 font-medium">&nbsp;</label>
+      <div class="flex gap-2">
+        <button pButton label="Hoy" icon="pi pi-calendar" class="p-button-outlined" (click)="verHoy()"></button>
+        <button pButton label="Mañana" icon="pi pi-arrow-right" class="p-button-outlined" (click)="verManana()"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lista de Citas -->
+<div class="citas-container">
+  @if (loading) {
+    <div class="flex justify-content-center py-5">
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color);"></i>
+    </div>
+  } @else if (citas.length === 0) {
+    <div class="empty-state">
+      <i class="pi pi-calendar"></i>
+      <h3>No hay citas para este día</h3>
+      <p>No se encontraron citas programadas para la fecha seleccionada</p>
+      <button pButton label="Agendar Cita" icon="pi pi-plus" (click)="nuevaCita()"></button>
+    </div>
+  } @else {
+    <div class="citas-list">
+      @for (cita of citas; track cita.id) {
+        <div class="cita-card" [class]="getTipoClass(cita.tipo)" [class.cita-con-plan]="cita.planId">
+          <div class="cita-hora">
+            <span class="hora">{{ formatHora(cita.fechaHora) }}</span>
+            <span class="tipo-badge">{{ getTipoLabel(cita.tipo) }}</span>
+          </div>
+          
+          <div class="cita-info">
+            <div class="paciente-row">
+              <span class="paciente-nombre">{{ cita.pacienteNombre }}</span>
+              <p-tag [value]="getEstadoLabel(cita.estado)" [severity]="getEstadoSeverity(cita.estado)"></p-tag>
+            </div>
+            <div class="paciente-detalles">
+              <span><i class="pi pi-id-card"></i> {{ cita.pacienteDni }}</span>
+              <span><i class="pi pi-phone"></i> {{ cita.pacienteTelefono }}</span>
+              @if (cita.numeroSesion && cita.planTotalSesiones) {
+                <span class="sesion-info"><i class="pi pi-list-check"></i> Sesión {{ cita.numeroSesion }}/{{ cita.planTotalSesiones }}</span>
+              }
+            </div>
+            @if (cita.notas) {
+              <div class="cita-notas">
+                <i class="pi pi-comment"></i> {{ cita.notas }}
+              </div>
+            }
+          </div>
+          
+          <div class="cita-acciones">
+            <!-- Ver paciente - siempre visible -->
+            <a [routerLink]="['/pacientes', cita.pacienteId]" pButton icon="pi pi-user" 
+               class="p-button-text p-button-sm" pTooltip="Ver paciente"></a>
+
+            <!-- Registrar Consulta - para CONSULTA/RECONSULTA en EN_ATENCION o COMPLETADA -->
+            @if ((cita.estado === 'EN_ATENCION' || cita.estado === 'COMPLETADA') && (cita.tipo === 'CONSULTA' || cita.tipo === 'RECONSULTA')) {
+              <button pButton icon="pi pi-file-edit" 
+                      class="p-button-text p-button-sm p-button-success"
+                      pTooltip="Registrar Consulta"
+                      (click)="irAConsulta(cita)">
+              </button>
+            }
+
+            <!-- Crear Plan - para CONSULTA/RECONSULTA COMPLETADA -->
+            @if (cita.estado === 'COMPLETADA' && (cita.tipo === 'CONSULTA' || cita.tipo === 'RECONSULTA')) {
+              <button pButton icon="pi pi-list-check" 
+                      class="p-button-text p-button-sm p-button-info"
+                      pTooltip="Crear Plan"
+                      (click)="irACrearPlan(cita)">
+              </button>
+            }
+
+            <!-- Registrar Sesión - para SESION en COMPLETADA -->
+            @if (cita.estado === 'COMPLETADA' && cita.tipo === 'SESION') {
+              <button pButton icon="pi pi-check-square" 
+                      class="p-button-text p-button-sm p-button-info"
+                      pTooltip="Registrar Sesión"
+                      (click)="irARegistrarSesion(cita)">
+              </button>
+            }
+            
+            <!-- Acciones de estado -->
+            @for (accion of getAccionesDisponibles(cita); track accion.estado) {
+              <button pButton [icon]="accion.icon" 
+                      class="p-button-text p-button-sm"
+                      [pTooltip]="accion.label"
+                      (click)="cambiarEstado(cita, accion.estado)">
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Dialog Nueva Cita -->
+<p-dialog 
+  header="Nueva Cita" 
+  [(visible)]="showDialog" 
+  [modal]="true" 
+  [style]="{width: '500px'}"
+  (onHide)="onDialogHide()">
+  <app-cita-form
+    [fechaInicial]="fechaSeleccionada"
+    [pacienteIdInicial]="pacienteIdParaCita"
+    [planIdInicial]="planIdParaCita"
+    (guardado)="onCitaGuardada()"
+    (cancelado)="showDialog = false">
+  </app-cita-form>
+</p-dialog>

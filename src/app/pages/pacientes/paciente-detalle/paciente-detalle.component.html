@@ -1,0 +1,160 @@
+<p-toast></p-toast>
+
+@if (loading) {
+  <div class="flex justify-content-center py-5">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color);"></i>
+  </div>
+} @else if (paciente) {
+  <app-page-header [title]="paciente.nombreCompleto" subtitle="Información del paciente">
+    <button pButton label="Editar" icon="pi pi-pencil" class="p-button-outlined" [routerLink]="['/pacientes', paciente.id, 'editar']"></button>
+    <button pButton label="Nueva Cita" icon="pi pi-calendar-plus" routerLink="/citas/nueva"></button>
+  </app-page-header>
+
+  <!-- Info Card -->
+  <div class="grid">
+    <div class="col-12 lg:col-4">
+      <div class="info-card">
+        <div class="paciente-header">
+          <div class="paciente-avatar-lg">
+            {{ paciente.nombres.charAt(0) }}{{ paciente.apellidos.charAt(0) }}
+          </div>
+          <div class="paciente-main-info">
+            <h2>{{ paciente.nombreCompleto }}</h2>
+            <p-tag [value]="getEstadoLabel(paciente.estado)" [severity]="getEstadoSeverity(paciente.estado)"></p-tag>
+          </div>
+        </div>
+
+        <div class="info-list">
+          <div class="info-item">
+            <i class="pi pi-id-card"></i>
+            <div>
+              <small>DNI</small>
+              <span>{{ paciente.dni }}</span>
+            </div>
+          </div>
+
+          @if (paciente.edad) {
+            <div class="info-item">
+              <i class="pi pi-calendar"></i>
+              <div>
+                <small>Edad</small>
+                <span>{{ paciente.edad }} años</span>
+              </div>
+            </div>
+          }
+
+          <div class="info-item">
+            <i class="pi pi-phone"></i>
+            <div>
+              <small>Teléfono</small>
+              <a [href]="'tel:' + paciente.telefono">{{ paciente.telefono }}</a>
+            </div>
+          </div>
+
+          @if (paciente.email) {
+            <div class="info-item">
+              <i class="pi pi-envelope"></i>
+              <div>
+                <small>Email</small>
+                <a [href]="'mailto:' + paciente.email">{{ paciente.email }}</a>
+              </div>
+            </div>
+          }
+
+          @if (paciente.direccion) {
+            <div class="info-item">
+              <i class="pi pi-map-marker"></i>
+              <div>
+                <small>Dirección</small>
+                <span>{{ paciente.direccion }}</span>
+              </div>
+            </div>
+          }
+
+          @if (paciente.ocupacion) {
+            <div class="info-item">
+              <i class="pi pi-briefcase"></i>
+              <div>
+                <small>Ocupación</small>
+                <span>{{ paciente.ocupacion }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 lg:col-8">
+      <p-tabView>
+        <!-- Tab: Información Médica -->
+        <p-tabPanel header="Información Médica">
+          <div class="grid">
+            <div class="col-12 md:col-4">
+              <div class="medical-info-card">
+                <h4><i class="pi pi-exclamation-circle"></i> Alergias</h4>
+                <p>{{ paciente.alergias || 'No registradas' }}</p>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <div class="medical-info-card">
+                <h4><i class="pi pi-heart"></i> Medicamentos</h4>
+                <p>{{ paciente.medicamentos || 'No registrados' }}</p>
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <div class="medical-info-card">
+                <h4><i class="pi pi-info-circle"></i> Condiciones</h4>
+                <p>{{ paciente.condicionesPreexistentes || 'No registradas' }}</p>
+              </div>
+            </div>
+          </div>
+
+          @if (paciente.contactoEmergenciaNombre) {
+            <div class="emergency-contact">
+              <h4><i class="pi pi-phone"></i> Contacto de Emergencia</h4>
+              <p>
+                <strong>{{ paciente.contactoEmergenciaNombre }}</strong>
+                ({{ paciente.contactoEmergenciaParentesco }}) - 
+                <a [href]="'tel:' + paciente.contactoEmergenciaTelefono">{{ paciente.contactoEmergenciaTelefono }}</a>
+              </p>
+            </div>
+          }
+        </p-tabPanel>
+
+        <!-- Tab: Historial de Citas -->
+        <p-tabPanel header="Historial de Citas">
+          @if (loadingCitas) {
+            <div class="flex justify-content-center py-3">
+              <i class="pi pi-spin pi-spinner"></i>
+            </div>
+          } @else if (citas.length === 0) {
+            <div class="empty-state-sm">
+              <p>No hay citas registradas</p>
+            </div>
+          } @else {
+            <p-table [value]="citas" styleClass="p-datatable-sm">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>Fecha</th>
+                  <th>Tipo</th>
+                  <th>Estado</th>
+                  <th>Notas</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-cita>
+                <tr>
+                  <td>{{ formatDate(cita.fechaHora) }}</td>
+                  <td>{{ cita.tipo }}</td>
+                  <td>
+                    <p-tag [value]="cita.estado" [severity]="getEstadoCitaSeverity(cita.estado)"></p-tag>
+                  </td>
+                  <td>{{ cita.notas || '-' }}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          }
+        </p-tabPanel>
+      </p-tabView>
+    </div>
+  </div>
+}

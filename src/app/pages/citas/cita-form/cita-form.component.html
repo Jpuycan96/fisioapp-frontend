@@ -1,0 +1,147 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  
+  <!-- Info del Plan (si viene de un plan) -->
+  @if (planSeleccionado) {
+    <div class="plan-info">
+      <div class="plan-header">
+        <i class="pi pi-list-check"></i>
+        <span>Sesión del Plan de Tratamiento</span>
+      </div>
+      <div class="plan-detalles">
+        <div class="plan-item">
+          <span class="label">Diagnóstico:</span>
+          <span class="value">{{ planSeleccionado.diagnostico | slice:0:50 }}{{ planSeleccionado.diagnostico.length > 50 ? '...' : '' }}</span>
+        </div>
+        <div class="plan-item">
+          <span class="label">Progreso:</span>
+          <span class="value">
+            <p-tag [value]="'Sesión ' + getNumeroSesionSiguiente() + ' de ' + planSeleccionado.numeroSesiones" severity="info"></p-tag>
+          </span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Paciente -->
+  <div class="field">
+    <label for="paciente">Paciente *</label>
+    @if (planSeleccionado && pacienteSeleccionado) {
+      <!-- Paciente bloqueado cuando viene de un plan -->
+      <div class="paciente-bloqueado">
+        <i class="pi pi-user"></i>
+        <span>{{ pacienteSeleccionado.nombreCompleto }}</span>
+        <i class="pi pi-lock" pTooltip="No se puede cambiar el paciente de una sesión de plan"></i>
+      </div>
+    } @else {
+      <p-autoComplete
+        id="paciente"
+        formControlName="paciente"
+        [suggestions]="pacientesSugeridos"
+        (completeMethod)="buscarPacientes($event)"
+        (onSelect)="onPacienteSelect($event)"
+        field="nombreCompleto"
+        [dropdown]="false"
+        placeholder="Buscar por nombre o DNI..."
+        styleClass="w-full"
+        [inputStyleClass]="'w-full'">
+        <ng-template let-paciente pTemplate="item">
+          <div class="paciente-item">
+            <span class="nombre">{{ paciente.nombreCompleto }}</span>
+            <span class="dni">DNI: {{ paciente.dni }}</span>
+          </div>
+        </ng-template>
+      </p-autoComplete>
+      @if (f['paciente'].invalid && f['paciente'].touched) {
+        <small class="p-error">Seleccione un paciente</small>
+      }
+    }
+  </div>
+
+  <!-- Fecha y Hora -->
+  <div class="grid">
+    <div class="col-6">
+      <div class="field">
+        <label for="fecha">Fecha *</label>
+        <p-datepicker
+          id="fecha"
+          formControlName="fecha"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          [minDate]="fechaInicial"
+          styleClass="w-full">
+        </p-datepicker>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="field">
+        <label for="hora">Hora *</label>
+        <p-dropdown
+          id="hora"
+          formControlName="hora"
+          [options]="horasDisponibles"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccione"
+          styleClass="w-full">
+        </p-dropdown>
+        @if (f['hora'].invalid && f['hora'].touched) {
+          <small class="p-error">Seleccione una hora</small>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Tipo -->
+  <div class="field">
+    <label for="tipo">Tipo de Cita *</label>
+    @if (planSeleccionado) {
+      <!-- Tipo bloqueado cuando viene de un plan -->
+      <div class="tipo-bloqueado">
+        <p-tag value="Sesión" severity="success"></p-tag>
+        <i class="pi pi-lock" pTooltip="Las citas de plan siempre son de tipo Sesión"></i>
+      </div>
+    } @else {
+      <p-dropdown
+        id="tipo"
+        formControlName="tipo"
+        [options]="tipoOptions"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full">
+      </p-dropdown>
+    }
+  </div>
+
+  <!-- Notas -->
+  <div class="field">
+    <label for="notas">Notas</label>
+    <textarea
+      pTextarea
+      id="notas"
+      formControlName="notas"
+      rows="3"
+      class="w-full"
+      placeholder="Observaciones adicionales...">
+    </textarea>
+  </div>
+
+  <!-- Resumen del paciente seleccionado (solo si no viene de plan) -->
+  @if (pacienteSeleccionado && !planSeleccionado) {
+    <div class="paciente-resumen">
+      <div class="resumen-header">
+        <i class="pi pi-user"></i>
+        <strong>{{ pacienteSeleccionado.nombreCompleto }}</strong>
+      </div>
+      <div class="resumen-detalles">
+        <span><i class="pi pi-id-card"></i> {{ pacienteSeleccionado.dni }}</span>
+        <span><i class="pi pi-phone"></i> {{ pacienteSeleccionado.telefono }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Botones -->
+  <div class="form-actions">
+    <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-outlined" (click)="onCancel()"></button>
+    <button pButton type="submit" label="Guardar" icon="pi pi-check" [loading]="saving"></button>
+  </div>
+</form>

@@ -1,0 +1,217 @@
+<p-toast></p-toast>
+
+<app-page-header
+  [title]="'Registrar Sesión ' + numeroSesion"
+  subtitle="Complete los detalles de la sesión realizada">
+  <button pButton label="Cancelar" icon="pi pi-times" class="p-button-outlined"
+    [routerLink]="planId ? ['/planes', planId] : ['/citas']"></button>
+</app-page-header>
+
+@if (loading) {
+  <div class="flex justify-content-center py-5">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color);"></i>
+  </div>
+} @else if (plan && paciente) {
+  <div class="grid">
+    <div class="col-12 lg:col-8">
+      <!-- Info del contexto -->
+      <div class="context-card">
+        <div class="context-section">
+          <div class="context-icon">
+            <i class="pi pi-user"></i>
+          </div>
+          <div class="context-info">
+            <span class="context-label">Paciente</span>
+            <span class="context-value">{{ paciente.nombres }} {{ paciente.apellidos }}</span>
+          </div>
+        </div>
+        <div class="context-divider"></div>
+        <div class="context-section">
+          <div class="context-icon">
+            <i class="pi pi-list-check"></i>
+          </div>
+          <div class="context-info">
+            <span class="context-label">Plan de Tratamiento</span>
+            <span class="context-value">{{ plan.diagnostico | slice:0:40 }}{{ plan.diagnostico.length > 40 ? '...' : '' }}</span>
+          </div>
+        </div>
+        <div class="context-divider"></div>
+        <div class="context-section">
+          <div class="context-icon progreso">
+            <i class="pi pi-chart-line"></i>
+          </div>
+          <div class="context-info">
+            <span class="context-label">Progreso</span>
+            <span class="context-value">
+              <p-tag [value]="'Sesión ' + numeroSesion + ' de ' + plan.numeroSesiones" severity="info"></p-tag>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <!-- Escala EVA -->
+        <div class="form-section">
+          <h3><i class="pi pi-heart"></i> Escala de Dolor (EVA)</h3>
+          <p class="section-desc">¿Cómo califica el paciente su dolor del 0 al 10?</p>
+          
+          <div class="eva-container">
+            <div class="eva-slider">
+              <p-slider 
+                formControlName="escalaEva" 
+                [min]="0" 
+                [max]="10" 
+                [step]="1"
+                styleClass="w-full">
+              </p-slider>
+              <div class="eva-labels">
+                <span>0</span>
+                <span>5</span>
+                <span>10</span>
+              </div>
+            </div>
+            <div class="eva-display" [style.background]="getEvaColor(form.get('escalaEva')?.value)">
+              <span class="eva-value">{{ form.get('escalaEva')?.value ?? '-' }}</span>
+              <span class="eva-label">{{ getEvaLabel(form.get('escalaEva')?.value) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Técnicas Aplicadas -->
+        <div class="form-section">
+          <h3><i class="pi pi-list"></i> Técnicas Aplicadas *</h3>
+          <p class="section-desc">Seleccione las técnicas que se aplicaron en esta sesión</p>
+          
+          <p-multiSelect
+            formControlName="tecnicasAplicadas"
+            [options]="tecnicasDisponibles"
+            optionLabel="nombre"
+            optionValue="id"
+            placeholder="Seleccione las técnicas"
+            display="chip"
+            styleClass="w-full">
+            <ng-template let-tecnica pTemplate="item">
+              <div class="tecnica-item">
+                <span>{{ tecnica.nombre }}</span>
+                <span class="tecnica-precio">S/. {{ tecnica.precio | number:'1.2-2' }}</span>
+              </div>
+            </ng-template>
+          </p-multiSelect>
+          @if (f['tecnicasAplicadas'].invalid && f['tecnicasAplicadas'].touched) {
+            <small class="p-error">Seleccione al menos una técnica</small>
+          }
+        </div>
+
+        <!-- Medidas físicas (opcional) -->
+        <div class="form-section">
+          <h3><i class="pi pi-chart-bar"></i> Medidas Físicas (Opcional)</h3>
+          
+          <div class="grid">
+            <div class="col-6">
+              <div class="field">
+                <label for="pesoKg">Peso (kg)</label>
+                <p-inputNumber
+                  id="pesoKg"
+                  formControlName="pesoKg"
+                  [min]="0"
+                  [max]="300"
+                  [minFractionDigits]="1"
+                  [maxFractionDigits]="2"
+                  placeholder="Ej: 70.5"
+                  styleClass="w-full">
+                </p-inputNumber>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="field">
+                <label for="tallaCm">Talla (cm)</label>
+                <p-inputNumber
+                  id="tallaCm"
+                  formControlName="tallaCm"
+                  [min]="0"
+                  [max]="250"
+                  [minFractionDigits]="1"
+                  [maxFractionDigits]="1"
+                  placeholder="Ej: 170"
+                  styleClass="w-full">
+                </p-inputNumber>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="form-section">
+          <h3><i class="pi pi-comment"></i> Observaciones</h3>
+          
+          <div class="field">
+            <textarea
+              pTextarea
+              formControlName="observaciones"
+              rows="4"
+              class="w-full"
+              placeholder="Anote cualquier observación relevante sobre la sesión...">
+            </textarea>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+          <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-outlined"
+            [routerLink]="planId ? ['/planes', planId] : ['/citas']"></button>
+          <button pButton type="submit" label="Registrar Sesión" icon="pi pi-check" 
+            [loading]="saving"></button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Panel lateral -->
+    <div class="col-12 lg:col-4">
+      <div class="info-card">
+        <h3><i class="pi pi-info-circle"></i> Información</h3>
+        
+        <div class="info-item">
+          <span class="label">Fecha:</span>
+          <span class="value">{{ 'Hoy' }}</span>
+        </div>
+        
+        <div class="info-item">
+          <span class="label">Sesiones completadas:</span>
+          <span class="value">{{ plan.sesionesCompletadas }} de {{ plan.numeroSesiones }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="label">Modalidad de pago:</span>
+          <span class="value">
+            @if (plan.modalidadPago === 'PAGO_COMPLETO') {
+              Pago Completo
+            } @else {
+              Por Sesión
+            }
+          </span>
+        </div>
+
+        @if (plan.modalidadPago === 'PAGO_POR_SESION') {
+          <p-divider></p-divider>
+          <div class="info-item total">
+            <span class="label">Costo de esta sesión:</span>
+            <span class="value">S/. {{ plan.costoPorSesion | number:'1.2-2' }}</span>
+          </div>
+        }
+      </div>
+
+      @if (numeroSesion === plan.numeroSesiones) {
+        <div class="alert-info">
+          <i class="pi pi-check-circle"></i>
+          <span>Esta es la <strong>última sesión</strong> del plan. Al registrarla, el plan pasará a estado <strong>Completado</strong>.</span>
+        </div>
+      }
+    </div>
+  </div>
+} @else {
+  <div class="empty-state">
+    <i class="pi pi-exclamation-circle"></i>
+    <p>No se pudo cargar la información</p>
+    <button pButton label="Volver" icon="pi pi-arrow-left" routerLink="/citas"></button>
+  </div>
+}

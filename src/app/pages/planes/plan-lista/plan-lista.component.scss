@@ -1,0 +1,92 @@
+.filters-card {
+  background: var(--surface-card);
+  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.table-card {
+  background: var(--surface-card);
+  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  overflow: hidden;
+}
+
+.paciente-link {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.diagnostico-text {
+  color: var(--text-color);
+  font-size: 0.9rem;
+}
+
+.sesiones-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .sesiones-count {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .progress-bar {
+    width: 80px;
+    height: 6px;
+    background: var(--surface-border);
+    border-radius: 3px;
+    overflow: hidden;
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary-color);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+  }
+}
+
+.costo-info {
+  display: flex;
+  flex-direction: column;
+
+  .costo-original {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-decoration: line-through;
+  }
+
+  .costo-final {
+    font-weight: 600;
+    color: var(--primary-color);
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+
+  i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+  }
+}

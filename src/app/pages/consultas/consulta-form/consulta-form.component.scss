@@ -1,0 +1,159 @@
+.paciente-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--surface-card);
+  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  border-left: 4px solid var(--primary-color);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.paciente-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: var(--primary-color);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.paciente-info {
+  h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+  }
+
+  .paciente-detalles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+
+    span {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+
+      i {
+        color: var(--primary-color);
+        font-size: 0.8rem;
+      }
+    }
+  }
+}
+
+.form-section {
+  background: var(--surface-card);
+  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 1.25rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--surface-border);
+
+    i {
+      color: var(--primary-color);
+    }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--surface-border);
+
+    h3 {
+      margin: 0;
+      padding: 0;
+      border: none;
+    }
+  }
+}
+
+.field {
+  margin-bottom: 0.5rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.875rem;
+  }
+
+  small.p-error {
+    display: block;
+    margin-top: 0.25rem;
+  }
+}
+
+.empty-hallazgos {
+  text-align: center;
+  padding: 2rem;
+  background: var(--surface-ground);
+  border-radius: 8px;
+  color: var(--text-secondary);
+
+  i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.hallazgo-item {
+  background: var(--surface-ground);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border-left: 3px solid var(--primary-color);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .paciente-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .paciente-detalles {
+    justify-content: center;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,585 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<app-page-header 
+  [title]="plan ? 'Plan de Tratamiento #' + plan.id : 'Plan de Tratamiento'" 
+  subtitle="Detalle del plan">
+  <button pButton label="Volver" icon="pi pi-arrow-left" class="p-button-outlined" routerLink="/planes"></button>
+</app-page-header>
+
+@if (loading) {
+  <div class="flex justify-content-center py-5">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color);"></i>
+  </div>
+} @else if (plan) {
+  <div class="grid">
+    <!-- Columna principal -->
+    <div class="col-12 lg:col-8">
+      <!-- Info del Paciente -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="pi pi-user"></i> Paciente</h3>
+          <p-tag [value]="getEstadoLabel(plan.estado)" [severity]="getEstadoSeverity(plan.estado)"></p-tag>
+        </div>
+        <div class="paciente-info">
+          <div class="paciente-avatar">
+            {{ plan.pacienteNombre.charAt(0) }}
+          </div>
+          <div class="paciente-datos">
+            <h4>{{ plan.pacienteNombre }}</h4>
+            <a [routerLink]="['/pacientes', plan.pacienteId]" class="ver-paciente">
+              <i class="pi pi-external-link"></i> Ver ficha del paciente
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diagnóstico -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="pi pi-file-edit"></i> Diagnóstico</h3>
+        </div>
+        <p class="diagnostico-text">{{ plan.diagnostico }}</p>
+        
+        @if (plan.observaciones) {
+          <div class="observaciones">
+            <strong>Observaciones:</strong>
+            <p>{{ plan.observaciones }}</p>
+          </div>
+        }
+      </div>
+
+      <!-- Técnicas -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="pi pi-list"></i> Técnicas del Tratamiento</h3>
+        </div>
+        
+        @if (plan.tecnicas && plan.tecnicas.length > 0) {
+          <div class="tecnicas-list">
+            @for (tecnica of plan.tecnicas; track tecnica.id) {
+              <div class="tecnica-item">
+                <div class="tecnica-info">
+                  <span class="tecnica-nombre">{{ tecnica.nombre }}</span>
+                  @if (tecnica.descripcion) {
+                    <span class="tecnica-descripcion">{{ tecnica.descripcion }}</span>
+                  }
+                </div>
+                <span class="tecnica-precio">S/. {{ tecnica.precio | number:'1.2-2' }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-secondary">No hay técnicas registradas</p>
+        }
+      </div>
+
+      <!-- Progreso (si está en curso o completado) -->
+      @if (plan.estado === 'EN_CURSO' || plan.estado === 'COMPLETADO' || plan.sesionesCompletadas > 0) {
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="pi pi-chart-line"></i> Progreso del Tratamiento</h3>
+          </div>
+          <div class="progreso-info">
+            <div class="progreso-stats">
+              <span class="sesiones-completadas">{{ plan.sesionesCompletadas }}</span>
+              <span class="sesiones-separador">/</span>
+              <span class="sesiones-total">{{ plan.numeroSesiones }} sesiones</span>
+            </div>
+            <p-progressBar [value]="getProgreso()" [showValue]="false" styleClass="mt-2"></p-progressBar>
+          </div>
+        </div>
+
+        <!-- Historial de Sesiones -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="pi pi-history"></i> Historial de Sesiones</h3>
+          </div>
+
+          @if (loadingSesiones) {
+            <div class="flex justify-content-center py-3">
+              <i class="pi pi-spin pi-spinner" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+            </div>
+          } @else if (sesiones.length === 0) {
+            <div class="empty-sesiones">
+              <i class="pi pi-calendar-times"></i>
+              <p>No hay sesiones registradas</p>
+            </div>
+          } @else {
+            <div class="sesiones-list">
+              @for (sesion of sesiones; track sesion.id) {
+                <div class="sesion-item">
+                  <div class="sesion-numero">
+                    <span class="numero">{{ sesion.numeroSesion }}</span>
+                    <span class="label">Sesión</span>
+                  </div>
+                  
+                  <div class="sesion-info">
+                    <div class="sesion-fecha">
+                      <i class="pi pi-calendar"></i>
+                      {{ formatFecha(sesion.fecha) }}
+                    </div>
+                    @if (sesion.atendidoPorNombre) {
+                      <div class="sesion-atendido">
+                        <i class="pi pi-user"></i>
+                        {{ sesion.atendidoPorNombre }}
+                      </div>
+                    }
+                    @if (sesion.observaciones) {
+                      <div class="sesion-obs">
+                        {{ sesion.observaciones | slice:0:60 }}{{ sesion.observaciones.length > 60 ? '...' : '' }}
+                      </div>
+                    }
+                  </div>
+
+                  <div class="sesion-eva">
+                    @if (sesion.escalaEva !== null && sesion.escalaEva !== undefined) {
+                      <p-tag 
+                        [value]="'EVA: ' + sesion.escalaEva" 
+                        [severity]="getEvaSeverity(sesion.escalaEva)">
+                      </p-tag>
+                      <span class="eva-label">{{ getEvaLabel(sesion.escalaEva) }}</span>
+                    } @else {
+                      <span class="no-eva">Sin EVA</span>
+                    }
+                  </div>
+
+                  <div class="sesion-tecnicas">
+                    @if (sesion.tecnicasAplicadas && sesion.tecnicasAplicadas.length > 0) {
+                      <span class="tecnicas-count">
+                        <i class="pi pi-check-circle"></i>
+                        {{ sesion.tecnicasAplicadas.length }} técnica(s)
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Historial de Pagos -->
+      @if (plan.modalidadPago !== 'PENDIENTE') {
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="pi pi-wallet"></i> Historial de Pagos</h3>
+            @if (plan.saldoPendiente > 0) {
+              <button pButton label="Registrar Pago" icon="pi pi-plus" 
+                class="p-button-sm"
+                (click)="abrirModalPago()">
+              </button>
+            }
+          </div>
+
+          @if (loadingPagos) {
+            <div class="flex justify-content-center py-3">
+              <i class="pi pi-spin pi-spinner" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+            </div>
+          } @else if (pagos.length === 0) {
+            <div class="empty-pagos">
+              <i class="pi pi-wallet"></i>
+              <p>No hay pagos registrados</p>
+              @if (plan.saldoPendiente > 0) {
+                <button pButton label="Registrar Primer Pago" icon="pi pi-plus" 
+                  class="p-button-outlined mt-2"
+                  (click)="abrirModalPago()">
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="pagos-list">
+              @for (pago of pagos; track pago.id) {
+                <div class="pago-item" [class.pago-devuelto]="pago.estado === 'DEVUELTO'">
+                  <div class="pago-icono">
+                    <i [class]="getMetodoIcon(pago.metodoPago)"></i>
+                  </div>
+                  <div class="pago-info">
+                    <span class="pago-tipo">{{ getTipoPagoLabel(pago.tipo) }}</span>
+                    <span class="pago-fecha">{{ formatFechaHora(pago.createdAt!) }}</span>
+                    @if (pago.notas) {
+                      <span class="pago-notas">{{ pago.notas }}</span>
+                    }
+                  </div>
+                  <div class="pago-metodo">
+                    <span>{{ getMetodoLabel(pago.metodoPago) }}</span>
+                  </div>
+                  <div class="pago-monto" [class.monto-devuelto]="pago.estado === 'DEVUELTO'">
+                    S/. {{ pago.monto | number:'1.2-2' }}
+                    @if (pago.estado === 'DEVUELTO') {
+                      <span class="estado-devuelto">(Devuelto)</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Columna lateral - Resumen -->
+    <div class="col-12 lg:col-4">
+      <!-- Resumen de costos -->
+      <div class="card resumen-card">
+        <div class="card-header">
+          <h3><i class="pi pi-calculator"></i> Resumen</h3>
+        </div>
+
+        <div class="resumen-item">
+          <span class="label">Sesiones:</span>
+          <span class="value">{{ plan.numeroSesiones }}</span>
+        </div>
+
+        @if (plan.frecuenciaSugerida) {
+          <div class="resumen-item">
+            <span class="label">Frecuencia:</span>
+            <span class="value">{{ plan.frecuenciaSugerida }}</span>
+          </div>
+        }
+
+        <p-divider></p-divider>
+
+        <div class="resumen-item">
+          <span class="label">Costo por sesión:</span>
+          <span class="value">S/. {{ plan.costoPorSesion | number:'1.2-2' }}</span>
+        </div>
+
+        <div class="resumen-item">
+          <span class="label">Costo total:</span>
+          <span class="value">S/. {{ plan.costoTotal | number:'1.2-2' }}</span>
+        </div>
+
+        @if (plan.porcentajeDescuento > 0) {
+          <div class="resumen-item descuento">
+            <span class="label">Descuento ({{ plan.porcentajeDescuento }}%):</span>
+            <span class="value">- S/. {{ plan.costoTotal - plan.costoConDescuento | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="resumen-item">
+            <span class="label">Con descuento:</span>
+            <span class="value text-green-500">S/. {{ plan.costoConDescuento | number:'1.2-2' }}</span>
+          </div>
+        }
+
+        <p-divider></p-divider>
+
+        <div class="resumen-item">
+          <span class="label">Modalidad:</span>
+          <span class="value">
+            <p-tag [value]="getModalidadLabel(plan.modalidadPago)" severity="info"></p-tag>
+          </span>
+        </div>
+
+        @if (plan.modalidadPago !== 'PENDIENTE') {
+          <div class="resumen-item">
+            <span class="label">Total a pagar:</span>
+            <span class="value total">S/. {{ getCostoAplicable() | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="resumen-item">
+            <span class="label">Pagado:</span>
+            <span class="value text-green-500">S/. {{ plan.totalPagado | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="resumen-item saldo-pendiente">
+            <span class="label">Saldo pendiente:</span>
+            <span class="value" [class.text-red-500]="plan.saldoPendiente > 0" [class.text-green-500]="plan.saldoPendiente <= 0">
+              S/. {{ plan.saldoPendiente | number:'1.2-2' }}
+            </span>
+          </div>
+
+          @if (plan.saldoPendiente <= 0) {
+            <div class="pagado-completo">
+              <i class="pi pi-check-circle"></i>
+              <span>Plan pagado completamente</span>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Acciones -->
+      <div class="card acciones-card">
+        <div class="card-header">
+          <h3><i class="pi pi-bolt"></i> Acciones</h3>
+        </div>
+
+        <div class="acciones-buttons">
+          @switch (plan.estado) {
+            @case ('PROPUESTO') {
+              <button pButton label="Confirmar Plan" icon="pi pi-check" 
+                class="p-button-success w-full mb-2"
+                (click)="abrirModalConfirmar()">
+              </button>
+              <p class="text-sm text-secondary text-center">
+                El paciente debe aceptar el plan y elegir cómo pagará
+              </p>
+            }
+            @case ('ACEPTADO') {
+              @if (plan.saldoPendiente > 0) {
+                <button pButton label="Registrar Pago" icon="pi pi-wallet" 
+                  class="p-button-success w-full mb-2"
+                  (click)="abrirModalPago()">
+                </button>
+              }
+              <button pButton label="Agendar Sesión" icon="pi pi-calendar-plus" 
+                class="p-button-primary w-full mb-2"
+                [routerLink]="['/citas']"
+                [queryParams]="{pacienteId: plan.pacienteId, planId: plan.id}">
+              </button>
+              <button pButton label="Marcar como Abandonado" icon="pi pi-times" 
+                class="p-button-outlined p-button-danger w-full"
+                (click)="cambiarEstado('ABANDONADO')">
+              </button>
+            }
+            @case ('EN_CURSO') {
+              @if (plan.saldoPendiente > 0) {
+                <button pButton label="Registrar Pago" icon="pi pi-wallet" 
+                  class="p-button-success w-full mb-2"
+                  (click)="abrirModalPago()">
+                </button>
+              }
+              <button pButton label="Agendar Sesión" icon="pi pi-calendar-plus" 
+                class="p-button-primary w-full mb-2"
+                [routerLink]="['/citas']"
+                [queryParams]="{pacienteId: plan.pacienteId, planId: plan.id}"
+                [disabled]="plan.sesionesCompletadas >= plan.numeroSesiones">
+              </button>
+              @if (plan.sesionesCompletadas >= plan.numeroSesiones) {
+                <button pButton label="Marcar como Completado" icon="pi pi-check-circle" 
+                  class="p-button-success w-full mb-2"
+                  (click)="cambiarEstado('COMPLETADO')">
+                </button>
+              }
+              <button pButton label="Marcar como Abandonado" icon="pi pi-times" 
+                class="p-button-outlined p-button-danger w-full"
+                (click)="cambiarEstado('ABANDONADO')">
+              </button>
+            }
+            @case ('COMPLETADO') {
+              <div class="estado-final completado">
+                <i class="pi pi-check-circle"></i>
+                <span>Tratamiento completado</span>
+              </div>
+              @if (plan.saldoPendiente > 0) {
+                <button pButton label="Registrar Pago Pendiente" icon="pi pi-wallet" 
+                  class="p-button-warning w-full mt-2"
+                  (click)="abrirModalPago()">
+                </button>
+              }
+            }
+            @case ('ABANDONADO') {
+              <div class="estado-final abandonado">
+                <i class="pi pi-times-circle"></i>
+                <span>Tratamiento abandonado</span>
+              </div>
+              @if (plan.saldoPendiente > 0) {
+                <p class="text-sm text-red-500 mt-2 text-center">
+                  Saldo pendiente: S/. {{ plan.saldoPendiente | number:'1.2-2' }}
+                </p>
+              }
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Fechas -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="pi pi-calendar"></i> Fechas</h3>
+        </div>
+        <div class="fechas-info">
+          <div class="fecha-item">
+            <span class="label">Creado:</span>
+            <span class="value">{{ plan.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          @if (plan.fechaConfirmacion) {
+            <div class="fecha-item">
+              <span class="label">Confirmado:</span>
+              <span class="value">{{ plan.fechaConfirmacion | date:'dd/MM/yyyy' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="empty-state">
+    <i class="pi pi-exclamation-circle"></i>
+    <p>No se encontró el plan</p>
+    <button pButton label="Volver a Planes" icon="pi pi-arrow-left" routerLink="/planes"></button>
+  </div>
+}
+
+<!-- Modal Confirmar Plan -->
+<p-dialog 
+  header="Confirmar Plan de Tratamiento" 
+  [(visible)]="mostrarModalConfirmar" 
+  [modal]="true"
+  [style]="{width: '500px'}"
+  [closable]="!confirmando">
+  
+  <div class="modal-content">
+    <p class="mb-3">El paciente ha aceptado el plan. Seleccione la modalidad de pago:</p>
+    
+    <div class="modalidad-options">
+      <!-- Opción: Pago Completo -->
+      <div class="modalidad-option" [class.selected]="modalidadSeleccionada === 'PAGO_COMPLETO'">
+        <p-radioButton 
+          name="modalidad" 
+          value="PAGO_COMPLETO" 
+          [(ngModel)]="modalidadSeleccionada"
+          inputId="pagoCompleto">
+        </p-radioButton>
+        <label for="pagoCompleto" class="ml-2">
+          <strong>Pago Completo</strong>
+          <span class="modalidad-desc">Paga todo el tratamiento por adelantado</span>
+        </label>
+      </div>
+
+      <!-- Checkbox de descuento (solo si eligió pago completo) -->
+      @if (modalidadSeleccionada === 'PAGO_COMPLETO' && plan && plan.porcentajeDescuento > 0) {
+        <div class="descuento-option">
+          <p-checkbox
+            [(ngModel)]="aplicarDescuento"
+            [binary]="true"
+            inputId="aplicarDescuento">
+          </p-checkbox>
+          <label for="aplicarDescuento" class="ml-2">
+            Aplicar descuento del {{ plan.porcentajeDescuento }}%
+          </label>
+        </div>
+        
+        <div class="precio-resumen">
+          @if (aplicarDescuento) {
+            <div class="precio-item tachado">
+              <span>Precio normal:</span>
+              <span>S/. {{ plan.costoTotal | number:'1.2-2' }}</span>
+            </div>
+            <div class="precio-item descuento">
+              <span>Descuento ({{ plan.porcentajeDescuento }}%):</span>
+              <span>- S/. {{ plan.costoTotal - plan.costoConDescuento | number:'1.2-2' }}</span>
+            </div>
+            <div class="precio-item total">
+              <span>Total a pagar:</span>
+              <span>S/. {{ plan.costoConDescuento | number:'1.2-2' }}</span>
+            </div>
+          } @else {
+            <div class="precio-item total">
+              <span>Total a pagar:</span>
+              <span>S/. {{ plan.costoTotal | number:'1.2-2' }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Opción: Pago por Sesión -->
+      <div class="modalidad-option" [class.selected]="modalidadSeleccionada === 'PAGO_POR_SESION'">
+        <p-radioButton 
+          name="modalidad" 
+          value="PAGO_POR_SESION" 
+          [(ngModel)]="modalidadSeleccionada"
+          inputId="pagoPorSesion">
+        </p-radioButton>
+        <label for="pagoPorSesion" class="ml-2">
+          <strong>Pago por Sesión</strong>
+          <span class="modalidad-desc">Paga cada vez que asiste a una sesión</span>
+          @if (plan) {
+            <span class="modalidad-precio">S/. {{ plan.costoPorSesion | number:'1.2-2' }} por sesión</span>
+          }
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" 
+      (click)="mostrarModalConfirmar = false" [disabled]="confirmando"></button>
+    <button pButton label="Confirmar" icon="pi pi-check" 
+      (click)="confirmarPlan()" [loading]="confirmando"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Modal Registrar Pago -->
+<p-dialog 
+  header="Registrar Pago" 
+  [(visible)]="mostrarModalPago" 
+  [modal]="true"
+  [style]="{width: '450px'}"
+  [closable]="!registrandoPago">
+  
+  <div class="modal-pago-content">
+    @if (plan) {
+      <div class="pago-resumen-header">
+        <div class="pago-saldo">
+          <span class="label">Saldo pendiente:</span>
+          <span class="valor">S/. {{ plan.saldoPendiente | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="pago-form">
+        <!-- Tipo de Pago -->
+        <div class="field">
+          <label for="tipoPago">Tipo de Pago</label>
+          <p-dropdown 
+            id="tipoPago"
+            [options]="tipoPagoOptions" 
+            [(ngModel)]="pagoTipo"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full">
+          </p-dropdown>
+        </div>
+
+        <!-- Monto -->
+        <div class="field">
+          <label for="monto">Monto</label>
+          <p-inputNumber 
+            id="monto"
+            [(ngModel)]="pagoMonto" 
+            mode="currency" 
+            currency="PEN" 
+            locale="es-PE"
+            [min]="0.01"
+            [max]="plan.saldoPendiente"
+            styleClass="w-full">
+          </p-inputNumber>
+          <small class="text-secondary">Máximo: S/. {{ plan.saldoPendiente | number:'1.2-2' }}</small>
+        </div>
+
+        <!-- Método de Pago -->
+        <div class="field">
+          <label for="metodoPago">Método de Pago</label>
+          <p-dropdown 
+            id="metodoPago"
+            [options]="metodoPagoOptions" 
+            [(ngModel)]="pagoMetodo"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full">
+          </p-dropdown>
+        </div>
+
+        <!-- Notas -->
+        <div class="field">
+          <label for="notas">Notas (opcional)</label>
+          <textarea 
+            id="notas"
+            pInputTextarea 
+            [(ngModel)]="pagoNotas" 
+            rows="2"
+            class="w-full">
+          </textarea>
+        </div>
+      </div>
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" 
+      (click)="mostrarModalPago = false" [disabled]="registrandoPago"></button>
+    <button pButton label="Registrar Pago" icon="pi pi-check" 
+      (click)="registrarPago()" [loading]="registrandoPago"
+      [disabled]="pagoMonto <= 0"></button>
+  </ng-template>
+</p-dialog>

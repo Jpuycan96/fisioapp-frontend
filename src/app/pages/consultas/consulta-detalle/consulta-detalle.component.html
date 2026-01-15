@@ -1,0 +1,102 @@
+<p-toast></p-toast>
+
+@if (loading) {
+  <div class="flex justify-content-center py-5">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color);"></i>
+  </div>
+} @else if (consulta) {
+  <app-page-header 
+    [title]="'Consulta #' + consulta.id" 
+    [subtitle]="formatDate(consulta.fecha)">
+    <button pButton label="Ver Paciente" icon="pi pi-user" class="p-button-outlined" 
+      [routerLink]="['/pacientes', consulta.pacienteId]"></button>
+    <button pButton label="Crear Plan" icon="pi pi-plus" 
+      [routerLink]="['/planes/nuevo']" 
+      [queryParams]="{pacienteId: consulta.pacienteId, consultaId: consulta.id}"></button>
+  </app-page-header>
+
+  <div class="grid">
+    <!-- Info Principal -->
+    <div class="col-12 lg:col-8">
+      <div class="detail-card">
+        <h3><i class="pi pi-user"></i> Paciente</h3>
+        <div class="info-row">
+          <span class="info-label">Nombre:</span>
+          <span class="info-value">{{ consulta.pacienteNombre }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Atendido por:</span>
+          <span class="info-value">{{ consulta.atendidoPorNombre }}</span>
+        </div>
+      </div>
+
+      <div class="detail-card">
+        <h3><i class="pi pi-file-edit"></i> Motivo de Consulta</h3>
+        <p class="consulta-text">{{ consulta.motivoConsulta || 'No especificado' }}</p>
+      </div>
+
+      @if (consulta.observacionesClinicas) {
+        <div class="detail-card">
+          <h3><i class="pi pi-comment"></i> Observaciones Clínicas</h3>
+          <p class="consulta-text">{{ consulta.observacionesClinicas }}</p>
+        </div>
+      }
+
+      @if (consulta.hallazgos && consulta.hallazgos.length > 0) {
+        <div class="detail-card">
+          <h3><i class="pi pi-map-marker"></i> Hallazgos</h3>
+          <div class="hallazgos-list">
+            @for (hallazgo of consulta.hallazgos; track hallazgo.id) {
+              <div class="hallazgo-item">
+                <div class="hallazgo-header">
+                  <span class="zona-nombre">{{ hallazgo.zonaNombre }}</span>
+                  <p-tag [value]="hallazgo.severidad" [severity]="getSeveridadSeverity(hallazgo.severidad)"></p-tag>
+                </div>
+                <div class="hallazgo-tipo">{{ hallazgo.tipoHallazgoNombre }}</div>
+                @if (hallazgo.descripcion) {
+                  <div class="hallazgo-descripcion">{{ hallazgo.descripcion }}</div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Panel Lateral -->
+    <div class="col-12 lg:col-4">
+      <div class="detail-card">
+        <h3><i class="pi pi-info-circle"></i> Detalles</h3>
+        
+        <div class="detail-item">
+          <span class="detail-label">Tipo</span>
+          <span class="detail-value">{{ getTipoLabel(consulta.tipo) }}</span>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Precio</span>
+          <span class="detail-value precio">S/. {{ consulta.precioCobrado | number:'1.2-2' }}</span>
+        </div>
+
+        @if (consulta.pesoKg) {
+          <div class="detail-item">
+            <span class="detail-label">Peso</span>
+            <span class="detail-value">{{ consulta.pesoKg }} kg</span>
+          </div>
+        }
+
+        @if (consulta.tallaCm) {
+          <div class="detail-item">
+            <span class="detail-label">Talla</span>
+            <span class="detail-value">{{ consulta.tallaCm }} cm</span>
+          </div>
+        }
+
+        <div class="detail-item">
+          <span class="detail-label">Fecha</span>
+          <span class="detail-value">{{ formatDate(consulta.fecha) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}

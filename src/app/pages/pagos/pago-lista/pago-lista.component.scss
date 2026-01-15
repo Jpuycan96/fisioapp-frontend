@@ -1,0 +1,167 @@
+.resumen-cards {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.resumen-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--surface-card);
+  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  padding: 1.25rem;
+
+  &.ingresos {
+    border-left: 4px solid var(--green-500);
+    
+    .resumen-icon {
+      background: var(--green-100);
+      color: var(--green-600);
+    }
+    
+    .resumen-valor {
+      color: var(--green-600);
+    }
+  }
+
+  &.cantidad {
+    border-left: 4px solid var(--blue-500);
+    
+    .resumen-icon {
+      background: var(--blue-100);
+      color: var(--blue-600);
+    }
+    
+    .resumen-valor {
+      color: var(--blue-600);
+    }
+  }
+
+  .resumen-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    i {
+      font-size: 1.5rem;
+    }
+  }
+
+  .resumen-info {
+    display: flex;
+    flex-direction: column;
+
+    .resumen-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .resumen-valor {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+  }
+}
+
+.filters-card {
+  background: var(--surface-card);
+  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.table-card {
+  background: var(--surface-card);
+  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  overflow: hidden;
+}
+
+.fecha-cell {
+  display: flex;
+  flex-direction: column;
+
+  .fecha {
+    font-weight: 600;
+  }
+
+  .hora {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+}
+
+.paciente-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.monto {
+  font-weight: 700;
+  color: var(--green-600);
+  font-size: 1rem;
+
+  &.monto-devuelto {
+    color: var(--red-500);
+    text-decoration: line-through;
+  }
+}
+
+.metodo-pago {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+
+  i {
+    color: var(--primary-color);
+  }
+}
+
+.row-devuelto {
+  opacity: 0.6;
+  background: var(--red-50);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+
+  i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .resumen-cards {
+    flex-direction: column;
+  }
+}

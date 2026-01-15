@@ -1,0 +1,151 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
+<app-page-header title="Pagos" subtitle="Control de ingresos y cobros">
+</app-page-header>
+
+<!-- Resumen del día -->
+@if (resumen) {
+  <div class="resumen-cards">
+    <div class="resumen-card ingresos">
+      <div class="resumen-icon">
+        <i class="pi pi-wallet"></i>
+      </div>
+      <div class="resumen-info">
+        <span class="resumen-label">Total Ingresos</span>
+        <span class="resumen-valor">S/. {{ resumen.totalIngresos | number:'1.2-2' }}</span>
+      </div>
+    </div>
+    <div class="resumen-card cantidad">
+      <div class="resumen-icon">
+        <i class="pi pi-receipt"></i>
+      </div>
+      <div class="resumen-info">
+        <span class="resumen-label">Cantidad de Pagos</span>
+        <span class="resumen-valor">{{ resumen.cantidadPagos }}</span>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Filtros -->
+<div class="filters-card">
+  <div class="grid align-items-end">
+    <div class="col-12 md:col-4 lg:col-3">
+      <label class="block mb-2 font-medium">Fecha</label>
+      <p-datepicker
+        [(ngModel)]="fechaSeleccionada"
+        dateFormat="dd/mm/yy"
+        [showIcon]="true"
+        [disabled]="mostrarTodos"
+        styleClass="w-full"
+        (onSelect)="onFechaChange()">
+      </p-datepicker>
+    </div>
+    <div class="col-12 md:col-4 lg:col-3">
+      <div class="flex align-items-center gap-2 h-full pb-2">
+        <p-checkbox
+          [(ngModel)]="mostrarTodos"
+          [binary]="true"
+          inputId="mostrarTodos"
+          (onChange)="onMostrarTodosChange()">
+        </p-checkbox>
+        <label for="mostrarTodos" class="cursor-pointer">Mostrar todos</label>
+      </div>
+    </div>
+    <div class="col-12 md:col-4 lg:col-6">
+      <div class="flex gap-2 h-full pb-2">
+        <button pButton label="Hoy" icon="pi pi-calendar" class="p-button-outlined" (click)="verHoy()"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="table-card">
+  <p-table
+    [value]="pagos"
+    [loading]="loading"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} pagos"
+    styleClass="p-datatable-sm p-datatable-striped">
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Fecha</th>
+        <th>Paciente</th>
+        <th>Tipo</th>
+        <th>Monto</th>
+        <th>Método</th>
+        <th>Estado</th>
+        <th>Registrado por</th>
+        <th style="width: 100px;">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-pago>
+      <tr [class.row-devuelto]="pago.estado === 'DEVUELTO'">
+        <td>
+          <div class="fecha-cell">
+            <span class="fecha">{{ formatFecha(pago.createdAt) }}</span>
+            <span class="hora">{{ formatHora(pago.createdAt) }}</span>
+          </div>
+        </td>
+        <td>
+          <a [routerLink]="['/pacientes', pago.pacienteId]" class="paciente-link">
+            {{ pago.pacienteNombre }}
+          </a>
+        </td>
+        <td>
+          <p-tag [value]="getTipoLabel(pago.tipo)" [severity]="getTipoSeverity(pago.tipo)"></p-tag>
+        </td>
+        <td>
+          <span class="monto" [class.monto-devuelto]="pago.estado === 'DEVUELTO'">
+            S/. {{ pago.monto | number:'1.2-2' }}
+          </span>
+        </td>
+        <td>
+          <span class="metodo-pago">
+            <i [class]="getMetodoIcon(pago.metodoPago)"></i>
+            {{ getMetodoLabel(pago.metodoPago) }}
+          </span>
+        </td>
+        <td>
+          <p-tag [value]="pago.estado" [severity]="getEstadoSeverity(pago.estado)"></p-tag>
+        </td>
+        <td>{{ pago.registradoPorNombre || '-' }}</td>
+        <td>
+          <div class="action-buttons">
+            @if (pago.estado === 'APLICADO') {
+              <button pButton icon="pi pi-replay" 
+                class="p-button-text p-button-sm p-button-danger"
+                pTooltip="Marcar como devuelto"
+                (click)="marcarDevuelto(pago)">
+              </button>
+            }
+            @if (pago.planId) {
+              <a [routerLink]="['/planes', pago.planId]" pButton icon="pi pi-external-link" 
+                class="p-button-text p-button-sm p-button-info"
+                pTooltip="Ver plan">
+              </a>
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8">
+          <div class="empty-state">
+            <i class="pi pi-wallet"></i>
+            <p>{{ mostrarTodos ? 'No hay pagos registrados' : 'No hay pagos para esta fecha' }}</p>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

@@ -1,0 +1,245 @@
+<p-toast></p-toast>
+
+<app-page-header 
+  title="Nueva Consulta" 
+  subtitle="Registro de evaluación clínica">
+  <button pButton label="Cancelar" icon="pi pi-times" class="p-button-outlined" 
+    [routerLink]="pacienteId ? ['/pacientes', pacienteId] : ['/citas']"></button>
+</app-page-header>
+
+@if (loading) {
+  <div class="flex justify-content-center py-5">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color);"></i>
+  </div>
+} @else if (paciente) {
+  <!-- Info del Paciente -->
+  <div class="paciente-card">
+    <div class="paciente-avatar">
+      {{ paciente.nombres.charAt(0) }}{{ paciente.apellidos.charAt(0) }}
+    </div>
+    <div class="paciente-info">
+      <h3>{{ paciente.nombreCompleto }}</h3>
+      <div class="paciente-detalles">
+        <span><i class="pi pi-id-card"></i> {{ paciente.dni }}</span>
+        <span><i class="pi pi-phone"></i> {{ paciente.telefono }}</span>
+        @if (paciente.edad) {
+          <span><i class="pi pi-calendar"></i> {{ paciente.edad }} años</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+<!-- Datos de la Consulta -->
+<div class="form-section">
+  <h3><i class="pi pi-file-edit"></i> Datos de la Consulta</h3>
+  
+  <div class="grid">
+    <div class="col-12 md:col-4">
+      <div class="field">
+        <label for="tipo">Tipo de Consulta *</label>
+        <p-dropdown
+          id="tipo"
+          formControlName="tipo"
+          [options]="tipoConsultaOptions"
+          optionLabel="label"
+          optionValue="value"
+          styleClass="w-full">
+        </p-dropdown>
+      </div>
+    </div>
+
+    <div class="col-12 md:col-4">
+      <div class="field">
+        <label for="tipoPrecio">Tipo de Precio</label>
+        <p-dropdown
+          id="tipoPrecio"
+          formControlName="tipoPrecio"
+          [options]="tipoPrecioOptions"
+          optionLabel="label"
+          optionValue="value"
+          styleClass="w-full"
+          (onChange)="onTipoPrecioChange($event)">
+        </p-dropdown>
+      </div>
+    </div>
+
+    <div class="col-12 md:col-4">
+      <div class="field">
+        <label for="precioCobrado">Precio (S/.) *</label>
+        <p-inputNumber
+          id="precioCobrado"
+          formControlName="precioCobrado"
+          mode="currency"
+          currency="PEN"
+          locale="es-PE"
+          styleClass="w-full"
+          [readonly]="form.get('tipoPrecio')?.value !== 'PERSONALIZADO'">
+        </p-inputNumber>
+        <small class="text-muted">
+          @if (form.get('tipoPrecio')?.value === 'PERSONALIZADO') {
+            Ingrese el monto personalizado
+          } @else {
+            Seleccione "Personalizado" para editar
+          }
+        </small>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <div class="field">
+        <label for="motivoConsulta">Motivo de Consulta *</label>
+        <textarea
+          pTextarea
+          id="motivoConsulta"
+          formControlName="motivoConsulta"
+          rows="3"
+          class="w-full"
+          placeholder="Describa el motivo de la consulta...">
+        </textarea>
+        @if (f['motivoConsulta'].invalid && f['motivoConsulta'].touched) {
+          <small class="p-error">El motivo es requerido</small>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+    <!-- Medidas -->
+    <div class="form-section">
+      <h3><i class="pi pi-chart-bar"></i> Medidas Antropométricas</h3>
+      
+      <div class="grid">
+        <div class="col-12 md:col-6">
+          <div class="field">
+            <label for="pesoKg">Peso (kg)</label>
+            <p-inputNumber
+              id="pesoKg"
+              formControlName="pesoKg"
+              [minFractionDigits]="1"
+              [maxFractionDigits]="2"
+              suffix=" kg"
+              styleClass="w-full">
+            </p-inputNumber>
+          </div>
+        </div>
+
+        <div class="col-12 md:col-6">
+          <div class="field">
+            <label for="tallaCm">Talla (cm)</label>
+            <p-inputNumber
+              id="tallaCm"
+              formControlName="tallaCm"
+              [minFractionDigits]="0"
+              [maxFractionDigits]="1"
+              suffix=" cm"
+              styleClass="w-full">
+            </p-inputNumber>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Observaciones Clínicas -->
+    <div class="form-section">
+      <h3><i class="pi pi-comment"></i> Observaciones Clínicas</h3>
+      
+      <div class="field">
+        <textarea
+          pTextarea
+          id="observacionesClinicas"
+          formControlName="observacionesClinicas"
+          rows="4"
+          class="w-full"
+          placeholder="Observaciones, hallazgos durante la evaluación...">
+        </textarea>
+      </div>
+    </div>
+
+    <!-- Hallazgos -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3><i class="pi pi-map-marker"></i> Hallazgos por Zona</h3>
+        <button pButton type="button" label="Agregar Hallazgo" icon="pi pi-plus" 
+          class="p-button-outlined p-button-sm" (click)="agregarHallazgo()"></button>
+      </div>
+
+      @if (hallazgos.length === 0) {
+        <div class="empty-hallazgos">
+          <i class="pi pi-info-circle"></i>
+          <p>No hay hallazgos registrados. Click en "Agregar Hallazgo" para añadir uno.</p>
+        </div>
+      }
+
+      <div formArrayName="hallazgos">
+        @for (hallazgo of hallazgos.controls; track $index) {
+          <div class="hallazgo-item" [formGroupName]="$index">
+            <div class="grid">
+              <div class="col-12 md:col-3">
+                <div class="field">
+                  <label>Zona Corporal</label>
+                  <p-dropdown
+                    formControlName="zonaId"
+                    [options]="zonasCorporales"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccione zona"
+                    [filter]="true"
+                    styleClass="w-full">
+                  </p-dropdown>
+                </div>
+              </div>
+
+              <div class="col-12 md:col-3">
+                <div class="field">
+                  <label>Tipo de Hallazgo</label>
+                  <p-dropdown
+                    formControlName="tipoHallazgoId"
+                    [options]="tiposHallazgo"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccione tipo"
+                    styleClass="w-full">
+                  </p-dropdown>
+                </div>
+              </div>
+
+              <div class="col-12 md:col-2">
+                <div class="field">
+                  <label>Severidad</label>
+                  <p-dropdown
+                    formControlName="severidad"
+                    [options]="severidadOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    styleClass="w-full">
+                  </p-dropdown>
+                </div>
+              </div>
+
+              <div class="col-12 md:col-3">
+                <div class="field">
+                  <label>Descripción</label>
+                  <input pInputText formControlName="descripcion" class="w-full" 
+                    placeholder="Detalles..." />
+                </div>
+              </div>
+
+              <div class="col-12 md:col-1 flex align-items-end">
+                <button pButton type="button" icon="pi pi-trash" 
+                  class="p-button-danger p-button-text"
+                  (click)="eliminarHallazgo($index)"></button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="form-actions">
+      <button pButton type="button" label="Cancelar" icon="pi pi-times" class="p-button-outlined" 
+        [routerLink]="pacienteId ? ['/pacientes', pacienteId] : ['/citas']"></button>
+      <button pButton type="submit" label="Guardar Consulta" icon="pi pi-check" [loading]="saving"></button>
+    </div>
+  </form>
+}

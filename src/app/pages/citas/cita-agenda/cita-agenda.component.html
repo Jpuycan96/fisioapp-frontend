@@ -1,0 +1,210 @@
+<p-toast></p-toast>
+
+<div class="agenda-container">
+  <!-- Header -->
+  <div class="agenda-header">
+    <div class="header-left">
+      <h1><i class="pi pi-calendar"></i> Agenda</h1>
+    </div>
+    <div class="header-right">
+      <button pButton icon="pi pi-plus" label="Nueva Cita" 
+        class="p-button-primary" routerLink="/citas/nueva">
+      </button>
+      <button pButton icon="pi pi-list" label="Vista Lista" 
+        class="p-button-outlined" routerLink="/citas">
+      </button>
+    </div>
+  </div>
+
+  <div class="agenda-content">
+    <!-- Calendario Principal -->
+    <div class="calendario-principal" #calendarContainer>
+      @if (loading) {
+        <div class="loading-overlay">
+          <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
+        </div>
+      }
+      
+      <full-calendar #calendar [options]="calendarOptions"></full-calendar>
+    </div>
+
+    <!-- Panel Lateral -->
+    <div class="panel-lateral">
+      <!-- Mini Calendario -->
+      <!-- Mini Calendario -->
+        <div class="mini-calendario-card">
+        <p-calendar 
+            [(ngModel)]="fechaMiniCalendario"
+            [inline]="true"
+            [showWeek]="false"
+            (onSelect)="onMiniCalendarioSelect($event)"
+            styleClass="mini-calendar">
+        </p-calendar>
+        </div>
+
+      <!-- Citas de Hoy -->
+      <div class="citas-dia-card">
+        <div class="card-titulo">
+          <span class="etiqueta">HOY</span>
+          <span class="fecha">{{ formatFechaCorta(diaSeleccionado) }}</span>
+        </div>
+        
+        @if (citasDelDia.length === 0) {
+          <div class="sin-citas">
+            <i class="pi pi-calendar-times"></i>
+            <span>No hay citas para hoy</span>
+          </div>
+        } @else {
+          <div class="citas-lista">
+            @for (cita of citasDelDia; track cita.id) {
+              <div class="cita-mini" [class]="'tipo-' + cita.tipo.toLowerCase()" 
+                   (click)="citaSeleccionada = cita; mostrarDetalle = true">
+                <div class="cita-mini-avatar" [class]="'bg-' + cita.tipo.toLowerCase()">
+                  {{ getInicialPaciente(cita) }}
+                </div>
+                <div class="cita-mini-info">
+                  <span class="nombre">{{ cita.pacienteNombre }}</span>
+                  <div class="detalles">
+                    <span class="ubicacion">
+                      <i class="pi pi-map-marker"></i> Consultorio
+                    </span>
+                    <span class="hora">
+                      <i class="pi pi-clock"></i> {{ formatHora(cita.fechaHora) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Citas de Mañana -->
+      <div class="citas-dia-card">
+        <div class="card-titulo">
+          <span class="etiqueta manana">MAÑANA</span>
+          <span class="fecha">
+            @if (citasManana.length > 0) {
+              {{ citasManana.length }} cita(s)
+            }
+          </span>
+        </div>
+        
+        @if (citasManana.length === 0) {
+          <div class="sin-citas">
+            <span>No hay citas para mañana</span>
+          </div>
+        } @else {
+          <div class="citas-lista">
+            @for (cita of citasManana; track cita.id) {
+              <div class="cita-mini" [class]="'tipo-' + cita.tipo.toLowerCase()"
+                   (click)="citaSeleccionada = cita; mostrarDetalle = true">
+                <div class="cita-mini-avatar" [class]="'bg-' + cita.tipo.toLowerCase()">
+                  {{ getInicialPaciente(cita) }}
+                </div>
+                <div class="cita-mini-info">
+                  <span class="nombre">{{ cita.pacienteNombre }}</span>
+                  <div class="detalles">
+                    <span class="ubicacion">
+                      <i class="pi pi-map-marker"></i> Consultorio
+                    </span>
+                    <span class="hora">
+                      <i class="pi pi-clock"></i> {{ formatHora(cita.fechaHora) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Leyenda -->
+      <div class="leyenda-card">
+        <div class="leyenda-titulo">Tipos de Cita</div>
+        <div class="leyenda-items">
+          <div class="leyenda-item">
+            <span class="color-box consulta"></span>
+            <span>Consulta</span>
+          </div>
+          <div class="leyenda-item">
+            <span class="color-box reconsulta"></span>
+            <span>Reconsulta</span>
+          </div>
+          <div class="leyenda-item">
+            <span class="color-box sesion"></span>
+            <span>Sesión</span>
+          </div>
+          <div class="leyenda-item">
+            <span class="color-box control"></span>
+            <span>Control</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalle de Cita -->
+<p-dialog 
+  header="Detalle de Cita" 
+  [(visible)]="mostrarDetalle" 
+  [modal]="true"
+  [style]="{width: '450px'}"
+  [dismissableMask]="true">
+  
+  @if (citaSeleccionada) {
+    <div class="detalle-cita">
+      <!-- Paciente -->
+      <div class="detalle-paciente">
+        <div class="avatar-grande" [class]="'bg-' + citaSeleccionada.tipo.toLowerCase()">
+          {{ getInicialPaciente(citaSeleccionada) }}
+        </div>
+        <div class="paciente-info">
+          <h3>{{ citaSeleccionada.pacienteNombre }}</h3>
+          <p-tag [value]="getTipoLabel(citaSeleccionada.tipo)" 
+                 [severity]="getTipoSeverity(citaSeleccionada.tipo)">
+          </p-tag>
+        </div>
+      </div>
+
+      <!-- Información -->
+      <div class="detalle-info">
+        <div class="info-item">
+          <i class="pi pi-calendar"></i>
+          <span>{{ formatFecha(citaSeleccionada.fechaHora) }}</span>
+        </div>
+        <div class="info-item">
+          <i class="pi pi-clock"></i>
+          <span>{{ formatHora(citaSeleccionada.fechaHora) }}</span>
+        </div>
+        <div class="info-item">
+          <i class="pi pi-tag"></i>
+          <span>
+            <p-tag [value]="getEstadoLabel(citaSeleccionada.estado)" 
+                   [severity]="getEstadoSeverity(citaSeleccionada.estado)">
+            </p-tag>
+          </span>
+        </div>
+        @if (citaSeleccionada.notas) {
+          <div class="info-item notas">
+            <i class="pi pi-file-edit"></i>
+            <span>{{ citaSeleccionada.notas }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Acciones -->
+      <div class="detalle-acciones">
+        <a [routerLink]="['/pacientes', citaSeleccionada.pacienteId]" 
+           pButton icon="pi pi-user" label="Ver Paciente" 
+           class="p-button-outlined p-button-sm">
+        </a>
+        <a [routerLink]="['/citas']" 
+           pButton icon="pi pi-pencil" label="Gestionar" 
+           class="p-button-primary p-button-sm">
+        </a>
+      </div>
+    </div>
+  }
+</p-dialog>

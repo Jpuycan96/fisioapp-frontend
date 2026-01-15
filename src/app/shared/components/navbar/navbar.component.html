@@ -1,0 +1,30 @@
+<header class="navbar">
+  <div class="navbar-start">
+    <button class="menu-toggle" (click)="onMenuToggle()">
+      <i class="pi pi-bars"></i>
+    </button>
+  </div>
+
+  <div class="navbar-end">
+    <!-- Notificaciones -->
+    <button class="navbar-icon-btn" pTooltip="Notificaciones">
+      <i class="pi pi-bell"></i>
+      <span class="badge">3</span>
+    </button>
+
+    <!-- Usuario -->
+    <div class="user-menu">
+      <p-menu #menu [model]="userMenuItems" [popup]="true" appendTo="body"></p-menu>
+      <button class="user-btn" (click)="menu.toggle($event)">
+        <div class="user-avatar">
+          <i class="pi pi-user"></i>
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ currentUser?.nombre || 'Usuario' }}</span>
+          <span class="user-role">{{ currentUser?.rol || 'Sin rol' }}</span>
+        </div>
+        <i class="pi pi-chevron-down"></i>
+      </button>
+    </div>
+  </div>
+</header>
